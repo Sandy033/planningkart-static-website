@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlanningKart | Events Simplified</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2d5a5e;
+            --accent: #e9c46a;
+            --bg: #fdfaf5;
+            --text: #333;
+            --soft-curve: 40px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2 { font-family: 'Outfit', sans-serif; color: var(--primary); }
+
+        /* Header / Hero */
+        .hero {
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #fdfaf5 0%, #e8f1f2 100%);
+            position: relative;
+        }
+
+        .logo { font-size: 2.5rem; font-weight: 600; margin-bottom: 10px; color: var(--primary); }
+        .logo span { color: var(--accent); }
+
+        .tagline { font-size: 1.2rem; max-width: 600px; margin-bottom: 30px; opacity: 0.8; }
+
+        /* Curved Section Divider */
+        .curve {
+            position: relative;
+            background: var(--primary);
+            height: 150px;
+            border-top-left-radius: 50% 100%;
+            border-top-right-radius: 50% 100%;
+            margin-top: -50px;
+        }
+
+        /* Features Section */
+        .container {
+            background: var(--primary);
+            color: white;
+            padding: 60px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: var(--soft-curve);
+            width: 350px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover { transform: translateY(-10px); }
+
+        .card h2 { color: var(--accent); margin-bottom: 15px; }
+
+        .category-list {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tag {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            font-size: 0.9rem;
+            opacity: 0.6;
+        }
+
+        .notify-btn {
+            background: var(--accent);
+            color: #4a3b10;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <section class="hero">
+        <div class="logo">Planning<span>Kart</span></div>
+        <p class="tagline">Your central platform for unforgettable experiences. Whether you're looking for a turf, a pottery workshop, or the perfect team outing, we’re bringing it all together.</p>
+        <p><strong>Coming Soon</strong></p>
+    </section>
+
+    <div class="curve"></div>
+
+    <div class="container">
+        <div class="card">
+            <h2>For Explorers</h2>
+            <p>Discover and book active events near you. From e-gaming zones to relaxing resorts, find your next adventure with ease.</p>
+            <div class="category-list">
+                <span class="tag">Gaming</span>
+                <span class="tag">Turfs</span>
+                <span class="tag">Pottery</span>
+                <span class="tag">Art</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>For Organizers</h2>
+            <p>The smartest way to list and manage your events. Reach more people and grow your community effortlessly.</p>
+            <div class="category-list">
+                <span class="tag">Corporate Outings</span>
+                <span class="tag">Bonding Drills</span>
+                <span class="tag">Venue Listings</span>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 PlanningKart. All rights reserved. <br>
+        Contact: admin@planningkart.com
+    </footer>
+
+</body>
+</html>
