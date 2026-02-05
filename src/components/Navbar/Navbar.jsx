@@ -1,8 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './Navbar.css';
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // Disable body scroll when menu is open
+    useEffect(() => {
+        if (isMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        // Cleanup function to ensure scroll is re-enabled
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isMenuOpen]);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
@@ -11,7 +25,21 @@ const Navbar = () => {
     const scrollToSection = (sectionId) => {
         const element = document.getElementById(sectionId);
         if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
+            // Calculate offset for sticky navbar and category tabs
+            const navbarHeight = 73; // Navbar height on mobile (65px) + some padding
+            const categoryTabsHeight = sectionId === 'events' ? 60 : 0; // Category tabs only for events section
+            const offset = navbarHeight + categoryTabsHeight;
+
+            // Get element position
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+            // Scroll to position with offset
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+
             setIsMenuOpen(false);
         }
     };
