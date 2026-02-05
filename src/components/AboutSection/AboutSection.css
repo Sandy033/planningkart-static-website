@@ -8,6 +8,10 @@
     margin: 0 auto;
 }
 
+.about-text {
+    text-align: center;
+}
+
 .about-text p {
     font-size: 1.125rem;
     line-height: 1.8;

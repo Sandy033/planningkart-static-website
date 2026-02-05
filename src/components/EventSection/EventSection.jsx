@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import EventCard from '../EventCard';
 import { getEventsByCategory } from '../../data/events';
 import './EventSection.css';
@@ -6,9 +6,23 @@ import './EventSection.css';
 const EventSection = ({ activeCategory, showHeader = true }) => {
     const [displayedEvents, setDisplayedEvents] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const eventSectionRef = useRef(null);
 
     useEffect(() => {
         setIsLoading(true);
+
+        // Scroll to top of event section when category changes
+        if (eventSectionRef.current) {
+            // Get the events grid to scroll to it instead of the section
+            const eventsGrid = eventSectionRef.current.querySelector('.events-grid');
+            if (eventsGrid) {
+                eventsGrid.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
+
         // Simulate loading for smooth transition
         setTimeout(() => {
             const events = getEventsByCategory(activeCategory);
@@ -18,7 +32,7 @@ const EventSection = ({ activeCategory, showHeader = true }) => {
     }, [activeCategory]);
 
     return (
-        <section id="events" className="event-section section">
+        <section id="events" className="event-section section" ref={eventSectionRef}>
             <div className="container">
                 {showHeader && (
                     <div className="section-header">
