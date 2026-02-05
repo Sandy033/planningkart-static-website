@@ -3,7 +3,7 @@ import EventCard from '../EventCard';
 import { getEventsByCategory } from '../../data/events';
 import './EventSection.css';
 
-const EventSection = ({ activeCategory }) => {
+const EventSection = ({ activeCategory, showHeader = true }) => {
     const [displayedEvents, setDisplayedEvents] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -20,12 +20,14 @@ const EventSection = ({ activeCategory }) => {
     return (
         <section id="events" className="event-section section">
             <div className="container">
-                <div className="section-header">
-                    <h2 className="section-title">Discover Amazing Events</h2>
-                    <p className="section-description">
-                        Browse through our curated collection of events and experiences in Bangalore
-                    </p>
-                </div>
+                {showHeader && (
+                    <div className="section-header">
+                        <h2 className="section-title">Discover Amazing Events</h2>
+                        <p className="section-description">
+                            Browse through our curated collection of events and experiences in Bangalore
+                        </p>
+                    </div>
+                )}
 
                 {isLoading ? (
                     <div className="loading-spinner">

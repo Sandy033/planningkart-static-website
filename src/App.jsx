@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Navbar from './components/Navbar/Navbar.jsx';
 import Hero from './components/Hero/Hero.jsx';
 import EventGallery from './components/EventGallery/EventGallery.jsx';
+import EventSectionHeader from './components/EventSectionHeader/EventSectionHeader.jsx';
 import CategoryTabs from './components/CategoryTabs/CategoryTabs.jsx';
 import EventSection from './components/EventSection/EventSection.jsx';
 import FeedbackSection from './components/FeedbackSection/FeedbackSection.jsx';
@@ -23,13 +24,27 @@ function App() {
       {/* Gallery Section */}
       <EventGallery />
 
+      {/* Events Section with Mobile Reordering */}
+      <div className="events-container">
+        {/* Header - appears first on mobile */}
+        <div className="event-header-wrapper">
+          <EventSectionHeader />
+        </div>
 
-      {/* Events Section with Category Tabs */}
-      <CategoryTabs
-        activeCategory={activeCategory}
-        onCategoryChange={handleCategoryChange}
-      />
-      <EventSection activeCategory={activeCategory} />
+        {/* Category Tabs - appears second on mobile */}
+        <div className="category-tabs-wrapper">
+          <CategoryTabs
+            activeCategory={activeCategory}
+            onCategoryChange={handleCategoryChange}
+          />
+        </div>
+
+        {/* Event Grid - appears third on mobile */}
+        <div className="event-grid-wrapper">
+          <EventSection activeCategory={activeCategory} showHeader={false} />
+        </div>
+      </div>
+
 
       {/* About Us Section */}
       <section id="about" className="about-section section">

@@ -4,6 +4,13 @@
   flex-direction: column;
 }
 
+/* Events Container for Mobile Reordering */
+.events-container {
+  display: flex;
+  flex-direction: column;
+}
+
+
 /* About Section */
 .about-section {
   background: var(--bg-secondary);
@@ -125,6 +132,28 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+
+  /* Reorder events section on mobile */
+  .events-container {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .event-header-wrapper {
+    order: 1;
+    /* Header appears first */
+  }
+
+  .category-tabs-wrapper {
+    order: 2;
+    /* Category tabs appear second */
+  }
+
+  .event-grid-wrapper {
+    order: 3;
+    /* Event grid appears third */
+  }
+
   .about-features {
     grid-template-columns: 1fr;
     gap: var(--space-6);
