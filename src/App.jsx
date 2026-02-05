@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Navbar from './components/Navbar/Navbar.jsx';
 import Hero from './components/Hero/Hero.jsx';
+import EventGallery from './components/EventGallery/EventGallery.jsx';
 import CategoryTabs from './components/CategoryTabs/CategoryTabs.jsx';
 import EventSection from './components/EventSection/EventSection.jsx';
 import FeedbackSection from './components/FeedbackSection/FeedbackSection.jsx';
@@ -20,54 +21,8 @@ function App() {
       <Hero />
 
       {/* Gallery Section */}
-      <section id="gallery" className="gallery-section section">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Event Gallery</h2>
-            <p className="section-description">
-              Glimpses from our amazing events and happy participants
-            </p>
-          </div>
-          <div className="gallery-grid">
-            <div className="gallery-item">
-              <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&h=400&fit=crop" alt="Pottery workshop" />
-              <div className="gallery-overlay">
-                <h4>Pottery Workshop</h4>
-              </div>
-            </div>
-            <div className="gallery-item">
-              <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=400&fit=crop" alt="Gaming event" />
-              <div className="gallery-overlay">
-                <h4>Gaming Tournament</h4>
-              </div>
-            </div>
-            <div className="gallery-item">
-              <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=600&h=400&fit=crop" alt="Cooking class" />
-              <div className="gallery-overlay">
-                <h4>Cooking Class</h4>
-              </div>
-            </div>
-            <div className="gallery-item">
-              <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&h=400&fit=crop" alt="Dance workshop" />
-              <div className="gallery-overlay">
-                <h4>Dance Workshop</h4>
-              </div>
-            </div>
-            <div className="gallery-item">
-              <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop" alt="Adventure trek" />
-              <div className="gallery-overlay">
-                <h4>Adventure Trek</h4>
-              </div>
-            </div>
-            <div className="gallery-item">
-              <img src="https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=600&h=400&fit=crop" alt="Art workshop" />
-              <div className="gallery-overlay">
-                <h4>Art Workshop</h4>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <EventGallery />
+
 
       {/* Events Section with Category Tabs */}
       <CategoryTabs
