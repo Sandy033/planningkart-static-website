@@ -1,0 +1,103 @@
+/* About Section */
+.about-section {
+    background: var(--bg-secondary);
+}
+
+.about-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.about-text p {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-6);
+}
+
+.about-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-8);
+    margin-top: var(--space-12);
+}
+
+.feature-item {
+    text-align: center;
+    padding: var(--space-6);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
+}
+
+.feature-item:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-4);
+}
+
+.feature-item h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
+}
+
+.feature-item p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .about-features {
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        gap: var(--space-4);
+        padding-bottom: var(--space-4);
+        -webkit-overflow-scrolling: touch;
+        /* Smooth scrolling on iOS */
+        scrollbar-width: thin;
+        /* Firefox */
+    }
+
+    /* Custom scrollbar styling for About section */
+    .about-features::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .about-features::-webkit-scrollbar-track {
+        background: var(--bg-primary);
+        border-radius: 3px;
+    }
+
+    .about-features::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 3px;
+    }
+
+    .feature-item {
+        flex: 0 0 85%;
+        /* Each item takes 85% of viewport width */
+        scroll-snap-align: center;
+        max-width: 400px;
+        /* Prevent items from being too wide on larger phones */
+    }
+
+    .feature-item:hover {
+        transform: none;
+        /* Disable hover lift on mobile */
+    }
+
+    .about-text p {
+        font-size: 1rem;
+    }
+}

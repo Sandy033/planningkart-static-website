@@ -1,0 +1,113 @@
+/* How It Works Section */
+.how-it-works-section {
+    background: var(--bg-primary);
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-10);
+    margin-top: var(--space-12);
+}
+
+.step-item {
+    position: relative;
+    text-align: center;
+    padding: var(--space-8);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-lg);
+    transition: all var(--transition-base);
+}
+
+.step-item:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-2xl);
+}
+
+.step-number {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-primary);
+    color: var(--text-inverse);
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    border-radius: 50%;
+}
+
+.step-icon {
+    font-size: 4rem;
+    margin-bottom: var(--space-4);
+}
+
+.step-item h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-4);
+}
+
+.step-item p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .steps-grid {
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        gap: var(--space-4);
+        padding-bottom: var(--space-4);
+        -webkit-overflow-scrolling: touch;
+        /* Smooth scrolling on iOS */
+        scrollbar-width: thin;
+        /* Firefox */
+    }
+
+    /* Custom scrollbar styling for How It Works section */
+    .steps-grid::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .steps-grid::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+        border-radius: 3px;
+    }
+
+    .steps-grid::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 3px;
+    }
+
+    .step-item {
+        flex: 0 0 85%;
+        /* Each item takes 85% of viewport width */
+        scroll-snap-align: center;
+        max-width: 400px;
+        /* Prevent items from being too wide on larger phones */
+    }
+
+    .step-item:hover {
+        transform: none;
+        /* Disable hover lift on mobile */
+    }
+}
+
+/* Tablet Responsive */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .steps-grid {
+        grid-template-columns: 1fr;
+    }
+}
