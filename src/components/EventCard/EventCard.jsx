@@ -13,7 +13,7 @@ const EventCard = ({ event }) => {
                     alt={event.title}
                     className="event-image"
                     onError={(e) => {
-                        e.target.src = `https://via.placeholder.com/400x300/00a8a8/ffffff?text=${encodeURIComponent(event.title)}`;
+                        e.target.src = `https://via.placeholder.com/400x300/8b5cf6/ffffff?text=${encodeURIComponent(event.title)}`;
                     }}
                 />
                 <div className="event-price-badge">{event.price}</div>

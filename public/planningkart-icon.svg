@@ -1,0 +1,53 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle with Gradient -->
+  <circle cx="256" cy="256" r="256" fill="url(#gradient1)"/>
+  
+  <!-- Gradient Definitions -->
+  <defs>
+    <linearGradient id="gradient1" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="gradient2" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Shopping Cart -->
+  <g transform="translate(120, 140)">
+    <!-- Cart Body -->
+    <path d="M10 80 L50 80 L70 200 L230 200 L260 100 L80 100" 
+          stroke="white" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" 
+          fill="none"/>
+    
+    <!-- Cart Wheels -->
+    <circle cx="90" cy="230" r="20" fill="white"/>
+    <circle cx="210" cy="230" r="20" fill="white"/>
+    
+    <!-- Calendar/Ticket Icon Inside Cart -->
+    <rect x="100" y="110" width="120" height="80" rx="10" fill="white" opacity="0.9"/>
+    
+    <!-- Calendar Grid -->
+    <line x1="110" y1="130" x2="210" y2="130" stroke="#8b5cf6" stroke-width="3"/>
+    <line x1="135" y1="140" x2="135" y2="180" stroke="#8b5cf6" stroke-width="2"/>
+    <line x1="160" y1="140" x2="160" y2="180" stroke="#8b5cf6" stroke-width="2"/>
+    <line x1="185" y1="140" x2="185" y2="180" stroke="#8b5cf6" stroke-width="2"/>
+    
+    <!-- Date Dots -->
+    <circle cx="122" cy="150" r="4" fill="#8b5cf6"/>
+    <circle cx="147" cy="150" r="4" fill="#8b5cf6"/>
+    <circle cx="172" cy="150" r="4" fill="#8b5cf6"/>
+    <circle cx="197" cy="150" r="4" fill="#8b5cf6"/>
+    <circle cx="122" cy="170" r="4" fill="#ff9a00"/>
+    <circle cx="147" cy="170" r="4" fill="#8b5cf6"/>
+    <circle cx="172" cy="170" r="4" fill="#8b5cf6"/>
+  </g>
+  
+  <!-- Sparkle Elements -->
+  <g opacity="0.8">
+    <path d="M400 150 L410 170 L430 180 L410 190 L400 210 L390 190 L370 180 L390 170 Z" fill="white"/>
+    <path d="M100 350 L107 365 L122 372 L107 379 L100 394 L93 379 L78 372 L93 365 Z" fill="white"/>
+    <path d="M420 380 L425 390 L435 395 L425 400 L420 410 L415 400 L405 395 L415 390 Z" fill="white"/>
+  </g>
+</svg>

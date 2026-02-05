@@ -11,9 +11,6 @@ const Hero = () => {
     return (
         <section id="hero" className="hero">
             <div className="hero-content">
-                <div className="hero-badge fade-in">
-                    <span>🎉</span> Discover Bangalore's Best Events
-                </div>
                 <h1 className="hero-title fade-in">
                     Your Gateway to <br />
                     <span className="gradient-text">Unforgettable Experiences</span>

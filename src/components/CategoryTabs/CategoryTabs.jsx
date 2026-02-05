@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { categories } from '../data/events';
+import { categories } from '../../data/events';
 import './CategoryTabs.css';
 
 const CategoryTabs = ({ activeCategory, onCategoryChange }) => {

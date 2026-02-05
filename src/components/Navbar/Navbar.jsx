@@ -20,6 +20,7 @@ const Navbar = () => {
         <nav className="navbar">
             <div className="navbar-container">
                 <div className="navbar-logo" onClick={() => scrollToSection('hero')}>
+                    <img src="/planningkart-icon.svg" alt="PlanningKart" className="logo-icon" />
                     Planning<span>Kart</span>
                 </div>
 

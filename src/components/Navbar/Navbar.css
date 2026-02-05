@@ -21,12 +21,25 @@
 }
 
 .navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
     font-family: var(--font-display);
     font-size: 1.75rem;
     font-weight: 700;
     color: var(--primary-700);
     cursor: pointer;
     transition: color var(--transition-fast);
+}
+
+.logo-icon {
+    width: 40px;
+    height: 40px;
+    transition: transform var(--transition-base);
+}
+
+.navbar-logo:hover .logo-icon {
+    transform: scale(1.1) rotate(5deg);
 }
 
 .navbar-logo span {

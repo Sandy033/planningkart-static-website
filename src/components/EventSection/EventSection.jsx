@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import EventCard from './EventCard';
-import { getEventsByCategory } from '../data/events';
+import EventCard from '../EventCard';
+import { getEventsByCategory } from '../../data/events';
 import './EventSection.css';
 
 const EventSection = ({ activeCategory }) => {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { testimonials } from '../data/testimonials';
+import { testimonials } from '../../data/testimonials';
 import './FeedbackSection.css';
 
 const FeedbackSection = () => {

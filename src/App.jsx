@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import CategoryTabs from './components/CategoryTabs';
-import EventSection from './components/EventSection';
-import FeedbackSection from './components/FeedbackSection';
-import Footer from './components/Footer';
+import Navbar from './components/Navbar/Navbar.jsx';
+import Hero from './components/Hero/Hero.jsx';
+import CategoryTabs from './components/CategoryTabs/CategoryTabs.jsx';
+import EventSection from './components/EventSection/EventSection.jsx';
+import FeedbackSection from './components/FeedbackSection/FeedbackSection.jsx';
+import Footer from './components/Footer/Footer.jsx';
 import './App.css';
 
 function App() {
