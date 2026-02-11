@@ -20,6 +20,12 @@
     align-items: center;
 }
 
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+}
+
 .navbar-logo {
     display: flex;
     align-items: center;
@@ -86,40 +92,210 @@
     width: 100%;
 }
 
-/* Mobile Toggle Button */
-.navbar-toggle {
+/* Mobile Auth Item */
+.mobile-auth-item {
     display: none;
-    flex-direction: column;
-    gap: 5px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: var(--space-2);
-    z-index: var(--z-fixed);
 }
 
-.navbar-toggle span {
-    width: 25px;
-    height: 3px;
-    background: var(--primary-600);
-    border-radius: var(--radius-full);
+.mobile-login-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) 0;
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: none;
+    border-radius: 0;
+    cursor: pointer;
+    transition: color var(--transition-fast);
+}
+
+.mobile-login-link:hover {
+    color: var(--primary-600);
+    transform: none;
+    box-shadow: none;
+}
+
+.mobile-user-info {
+    padding: var(--space-4);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.mobile-user-details {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+.mobile-user-email {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.mobile-user-role {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.mobile-logout-button {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    padding: var(--space-3);
+    background: var(--error-50);
+    color: var(--error-600);
+    border: 1px solid var(--error-200);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
     transition: all var(--transition-base);
 }
 
-.navbar-toggle.active span:nth-child(1) {
-    transform: rotate(45deg) translate(8px, 8px);
+.mobile-logout-button:hover {
+    background: var(--error-100);
+    border-color: var(--error-300);
 }
 
-.navbar-toggle.active span:nth-child(2) {
-    opacity: 0;
+/* User Menu */
+.user-menu-container {
+    position: relative;
 }
 
-.navbar-toggle.active span:nth-child(3) {
-    transform: rotate(-45deg) translate(7px, -7px);
+.user-icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: 2px solid var(--primary-300);
+    border-radius: var(--radius-full);
+    color: var(--primary-600);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.user-icon-button:hover {
+    background: var(--primary-50);
+    border-color: var(--primary-500);
+    color: var(--primary-700);
+    transform: scale(1.05);
+}
+
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + var(--space-2));
+    right: 0;
+    min-width: 220px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--neutral-200);
+    overflow: hidden;
+    animation: dropdownSlideIn 0.2s ease-out;
+    z-index: var(--z-dropdown);
+}
+
+.user-info {
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.user-email {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    word-break: break-word;
+}
+
+.user-role {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin: var(--space-1) 0 0 0;
+    text-transform: capitalize;
+}
+
+.dropdown-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    background: transparent;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: left;
+}
+
+.dropdown-item:hover {
+    background: var(--neutral-100);
+    color: var(--text-primary);
+}
+
+.logout-button {
+    color: #dc2626;
+}
+
+.logout-button:hover {
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+@keyframes dropdownSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile Toggle Button (User Icon style) */
+.navbar-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: 2px solid var(--primary-300);
+    border-radius: var(--radius-full);
+    color: var(--primary-600);
+    cursor: pointer;
+    padding: 0;
+    z-index: var(--z-fixed);
+    transition: all var(--transition-fast);
+}
+
+.navbar-toggle:hover,
+.navbar-toggle.active {
+    background: var(--primary-50);
+    border-color: var(--primary-500);
+    color: var(--primary-700);
+    transform: scale(1.05);
 }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+    .navbar-right {
+        gap: var(--space-3);
+    }
+
     .navbar-toggle {
         display: flex;
     }
@@ -161,5 +337,28 @@
 
     .navbar-logo {
         font-size: 1.5rem;
+    }
+
+    .user-icon-button {
+        width: 36px;
+        height: 36px;
+    }
+
+    .user-icon-button svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* Mobile auth visibility */
+/* Mobile auth visibility */
+@media (max-width: 768px) {
+    .mobile-auth-item {
+        display: block !important;
+    }
+
+    /* User icon should be visible on mobile now */
+    .desktop-only {
+        display: none !important;
     }
 }
