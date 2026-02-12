@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../../store/slices/authSlice';
+
 import { openLoginModal, openLogoutModal } from '../../store/slices/modalSlice';
 import './Navbar.css';
 

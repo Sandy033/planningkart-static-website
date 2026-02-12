@@ -5,7 +5,7 @@ export const signupUser = createAsyncThunk(
     'auth/signup',
     async (signupData, { rejectWithValue }) => {
         try {
-            const response = await fetch('/api/auth/signup', {
+            const response = await fetch('/v1/auth/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ export const loginUser = createAsyncThunk(
     'auth/login',
     async (loginData, { rejectWithValue }) => {
         try {
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch('/v1/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -86,6 +86,32 @@ export const loginUser = createAsyncThunk(
                     lastName: data.lastName,
                 },
             };
+        } catch (error) {
+            return rejectWithValue(error.message || 'Network error');
+        }
+    }
+);
+
+
+
+// Async thunk for user signout
+export const signoutUser = createAsyncThunk(
+    'auth/signout',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await fetch('/v1/auth/signout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                return rejectWithValue(error.message || 'Signout failed');
+            }
+
+            return await response.json();
         } catch (error) {
             return rejectWithValue(error.message || 'Network error');
         }
@@ -175,6 +201,29 @@ const authSlice = createSlice({
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+            // Signout reducers
+            .addCase(signoutUser.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(signoutUser.fulfilled, (state) => {
+                state.loading = false;
+                state.user = null;
+                state.token = null;
+                state.isAuthenticated = false;
+                state.error = null;
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('authUser');
+            })
+            .addCase(signoutUser.rejected, (state, action) => {
+                state.loading = false;
+                state.user = null;
+                state.token = null;
+                state.isAuthenticated = false;
+                state.error = action.payload;
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('authUser');
             });
     },
 });

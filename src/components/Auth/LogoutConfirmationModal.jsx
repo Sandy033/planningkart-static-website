@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux';
 import Modal from '../Modal/Modal';
-import { logout } from '../../store/slices/authSlice';
+import { signoutUser } from '../../store/slices/authSlice';
 import { closeModal } from '../../store/slices/modalSlice';
 import './Auth.css';
 
@@ -9,7 +9,7 @@ const LogoutConfirmationModal = () => {
     const { isLogoutModalOpen, isTransitioning } = useSelector((state) => state.modal);
 
     const handleLogout = () => {
-        dispatch(logout());
+        dispatch(signoutUser());
         dispatch(closeModal());
     };
 

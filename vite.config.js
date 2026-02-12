@@ -11,6 +11,11 @@ export default defineConfig({
         target: 'https://api.planningkart.com',
         changeOrigin: true,
         secure: true,
+      },
+      '/v1': {
+        target: 'https://api.planningkart.com',
+        changeOrigin: true,
+        secure: true,
       }
     }
   }
