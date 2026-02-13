@@ -103,13 +103,19 @@
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-    .modal-container {
-        max-width: 100%;
-        max-height: 100vh;
-        border-radius: var(--radius-2xl);
-        /* Keep rounded corners on mobile */
+    .modal-backdrop {
+        padding: 0 !important;
+    }
 
-        /* Ensure scrollbar is hidden on mobile */
+    .modal-container {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        max-height: 90vh !important;
+        border-radius: var(--radius-xl);
+        margin: auto !important;
+        padding: 0 !important;
+
+        /* Ensure scrollbar is hidden on mobile but scrolling is allowed */
         scrollbar-width: none;
         -ms-overflow-style: none;
     }
@@ -119,11 +125,11 @@
     }
 
     .modal-header {
-        padding: var(--space-4);
+        padding: var(--space-3);
     }
 
     .modal-content {
-        padding: var(--space-4);
+        padding: var(--space-3);
     }
 
     .modal-title {

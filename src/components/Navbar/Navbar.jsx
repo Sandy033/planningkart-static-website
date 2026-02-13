@@ -132,6 +132,10 @@ const Navbar = () => {
                         <li><a onClick={() => scrollToSection('how-it-works')}>How It Works</a></li>
                         <li><a onClick={() => scrollToSection('contact')}>Contact</a></li>
 
+                        {isAuthenticated && (user?.role?.toLowerCase() === 'organizer' || user?.role?.toLowerCase() === 'role_organizer') && (
+                            <li><a onClick={() => { navigate('/organizer'); setIsMenuOpen(false); }}>Organizer Dashboard</a></li>
+                        )}
+
                         {isAuthenticated && (
                             <li className="mobile-auth-item mobile-logout-item">
                                 <button className="mobile-logout-button" onClick={handleLogoutConfirm}>
