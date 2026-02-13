@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import Modal from '../Modal/Modal';
 import { signoutUser } from '../../store/slices/authSlice';
@@ -6,11 +7,13 @@ import './Auth.css';
 
 const LogoutConfirmationModal = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { isLogoutModalOpen, isTransitioning } = useSelector((state) => state.modal);
 
     const handleLogout = () => {
         dispatch(signoutUser());
         dispatch(closeModal());
+        navigate('/');
     };
 
     const handleClose = () => {

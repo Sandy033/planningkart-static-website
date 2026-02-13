@@ -1,0 +1,85 @@
+/* Merged AdminDashboard.css styles */
+.dashboard {
+    min-height: 100vh;
+    background: var(--bg-primary);
+}
+
+.dashboard-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-6);
+    /* Adjust for fixed navbar if needed, though structure seems to have navbar inside dashboard div or outside */
+    padding-top: 100px;
+}
+
+.dashboard-header {
+    margin-bottom: var(--space-8);
+}
+
+.dashboard-header h1 {
+    margin-bottom: var(--space-2);
+    /* background: var(--gradient-primary); -- assuming var exists or fallback */
+    color: var(--text-primary);
+}
+
+.dashboard-header p {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.dashboard-content {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: var(--space-6) var(--space-4);
+        padding-top: 90px;
+    }
+}
+
+/* OrganizerDashboard.css specific styles */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-8);
+}
+
+.form-section {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-lg);
+    margin-bottom: var(--space-8);
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.form-header h3 {
+    margin: 0;
+}
+
+.events-section h3 {
+    margin-bottom: var(--space-6);
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        gap: var(--space-4);
+    }
+
+    .dashboard-header .btn {
+        width: 100%;
+    }
+}

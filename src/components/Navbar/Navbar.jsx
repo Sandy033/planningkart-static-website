@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import { openLoginModal, openLogoutModal } from '../../store/slices/modalSlice';
 import './Navbar.css';
@@ -7,6 +8,8 @@ import './Navbar.css';
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const dispatch = useDispatch();
     const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -58,6 +61,27 @@ const Navbar = () => {
     };
 
     const scrollToSection = (sectionId) => {
+        // If not on home page, navigate to home first then scroll
+        if (location.pathname !== '/') {
+            navigate('/');
+            setTimeout(() => {
+                const element = document.getElementById(sectionId);
+                if (element) {
+                    const navbarHeight = 73;
+                    const categoryTabsHeight = sectionId === 'events' ? 60 : 0;
+                    const offset = navbarHeight + categoryTabsHeight;
+                    const elementPosition = element.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            }, 100);
+            setIsMenuOpen(false);
+            return;
+        }
+
         const element = document.getElementById(sectionId);
         if (element) {
             // Calculate offset for sticky navbar and category tabs
@@ -142,6 +166,12 @@ const Navbar = () => {
                                             <p className="user-email">{user.firstName || user.email}</p>
                                             <p className="user-role">{user.role}</p>
                                         </div>
+                                        {(user?.role?.toLowerCase() === 'organizer' || user?.role?.toLowerCase() === 'role_organizer') && (
+                                            <button className="dropdown-item" onClick={() => { navigate('/organizer'); setIsUserMenuOpen(false); }}>
+                                                <span role="img" aria-label="dashboard">📊</span>
+                                                Organizer Dashboard
+                                            </button>
+                                        )}
                                         <button className="dropdown-item logout-button" onClick={handleLogoutConfirm}>
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>

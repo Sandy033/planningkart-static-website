@@ -46,6 +46,52 @@ export const signupUser = createAsyncThunk(
     }
 );
 
+// Async thunk for organizer signup
+export const signupOrganizer = createAsyncThunk(
+    'auth/signupOrganizer',
+    async (organizerData, { rejectWithValue }) => {
+        try {
+            const response = await fetch('/v1/auth/organizer/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(organizerData),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                return rejectWithValue(error.message || 'Organizer signup failed');
+            }
+
+            const data = await response.json();
+
+            // Store token and user data in localStorage
+            localStorage.setItem('authToken', data.token);
+            localStorage.setItem('authUser', JSON.stringify({
+                id: data.id,
+                email: data.email,
+                role: data.role,
+                firstName: data.firstName || '',
+                lastName: '',
+            }));
+
+            return {
+                token: data.token,
+                user: {
+                    id: data.id,
+                    email: data.email,
+                    role: data.role,
+                    firstName: data.firstName || '',
+                    lastName: '',
+                },
+            };
+        } catch (error) {
+            return rejectWithValue(error.message || 'Network error');
+        }
+    }
+);
+
 // Async thunk for user login
 export const loginUser = createAsyncThunk(
     'auth/login',
@@ -181,6 +227,22 @@ const authSlice = createSlice({
                 state.error = null;
             })
             .addCase(signupUser.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            // Organizer Signup reducers
+            .addCase(signupOrganizer.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(signupOrganizer.fulfilled, (state, action) => {
+                state.loading = false;
+                state.user = action.payload.user;
+                state.token = action.payload.token;
+                state.isAuthenticated = true;
+                state.error = null;
+            })
+            .addCase(signupOrganizer.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });

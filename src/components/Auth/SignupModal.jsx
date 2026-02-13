@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import Modal from '../Modal/Modal';
-import { signupUser, clearError } from '../../store/slices/authSlice';
+import { signupUser, signupOrganizer, clearError } from '../../store/slices/authSlice';
 import { closeModal, switchToLogin } from '../../store/slices/modalSlice';
 import './Auth.css';
 
@@ -9,7 +10,9 @@ const SignupModal = () => {
     const dispatch = useDispatch();
     const { loading, error: apiError } = useSelector((state) => state.auth);
     const { isSignupModalOpen, isTransitioning } = useSelector((state) => state.modal);
+    const navigate = useNavigate();
 
+    const [isOrganizer, setIsOrganizer] = useState(false);
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -17,6 +20,12 @@ const SignupModal = () => {
         password: '',
         phoneNumber: '',
         dateOfBirth: '',
+        // Organization fields
+        organizationName: '',
+        contactEmail: '',
+        contactPhone: '',
+        websiteUrl: '',
+        description: '',
     });
     const [errors, setErrors] = useState({});
 
@@ -81,6 +90,18 @@ const SignupModal = () => {
         }
 
         setErrors(newErrors);
+        if (isOrganizer) {
+            if (!formData.organizationName) {
+                newErrors.organizationName = 'Organization Name is required';
+            }
+            if (!formData.contactEmail) {
+                newErrors.contactEmail = 'Contact Email is required';
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail)) {
+                newErrors.contactEmail = 'Please enter a valid email';
+            }
+        }
+
+        setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
@@ -91,25 +112,42 @@ const SignupModal = () => {
             return;
         }
 
-        // Prepare data for API (only send non-empty optional fields)
-        const signupData = {
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: formData.email,
-            password: formData.password,
-        };
+        let result;
+        if (isOrganizer) {
+            const organizerData = {
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                email: formData.email,
+                password: formData.password,
+                phoneNumber: formData.phoneNumber,
+                dateOfBirth: formData.dateOfBirth,
+                organizationName: formData.organizationName,
+                contactEmail: formData.contactEmail,
+                contactPhone: formData.contactPhone,
+                websiteUrl: formData.websiteUrl,
+                description: formData.description,
+            };
+            result = await dispatch(signupOrganizer(organizerData));
+        } else {
+            // Prepare data for API (only send non-empty optional fields)
+            const signupData = {
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                email: formData.email,
+                password: formData.password,
+            };
 
-        if (formData.phoneNumber) {
-            signupData.phoneNumber = formData.phoneNumber;
+            if (formData.phoneNumber) {
+                signupData.phoneNumber = formData.phoneNumber;
+            }
+
+            if (formData.dateOfBirth) {
+                signupData.dateOfBirth = formData.dateOfBirth;
+            }
+            result = await dispatch(signupUser(signupData));
         }
 
-        if (formData.dateOfBirth) {
-            signupData.dateOfBirth = formData.dateOfBirth;
-        }
-
-        const result = await dispatch(signupUser(signupData));
-
-        if (signupUser.fulfilled.match(result)) {
+        if (signupUser.fulfilled.match(result) || signupOrganizer.fulfilled.match(result)) {
             // Reset form and close modal on success
             setFormData({
                 firstName: '',
@@ -117,10 +155,25 @@ const SignupModal = () => {
                 email: '',
                 password: '',
                 phoneNumber: '',
+                firstName: '',
+                lastName: '',
+                email: '',
+                password: '',
+                phoneNumber: '',
                 dateOfBirth: '',
+                organizationName: '',
+                contactEmail: '',
+                contactPhone: '',
+                websiteUrl: '',
+                description: '',
             });
+            setIsOrganizer(false);
             setErrors({});
             dispatch(closeModal());
+
+            if (signupOrganizer.fulfilled.match(result)) {
+                navigate('/organizer');
+            }
         }
     };
 
@@ -136,8 +189,19 @@ const SignupModal = () => {
             email: '',
             password: '',
             phoneNumber: '',
+            firstName: '',
+            lastName: '',
+            email: '',
+            password: '',
+            phoneNumber: '',
             dateOfBirth: '',
+            organizationName: '',
+            contactEmail: '',
+            contactPhone: '',
+            websiteUrl: '',
+            description: '',
         });
+        setIsOrganizer(false);
         setErrors({});
         dispatch(clearError());
     };
@@ -247,6 +311,95 @@ const SignupModal = () => {
                     />
                     {errors.dateOfBirth && <span className="form-error">{errors.dateOfBirth}</span>}
                 </div>
+
+                <div className="form-group checkbox-group">
+                    <label className="checkbox-label">
+                        <input
+                            type="checkbox"
+                            checked={isOrganizer}
+                            onChange={(e) => setIsOrganizer(e.target.checked)}
+                        />
+                        Register as Event Organizer
+                    </label>
+                </div>
+
+                {isOrganizer && (
+                    <div className="organizer-fields">
+                        <h4>Organization Details</h4>
+                        <div className="form-group">
+                            <label htmlFor="organizationName" className="form-label">Organization Name *</label>
+                            <input
+                                type="text"
+                                id="organizationName"
+                                name="organizationName"
+                                className={`form-input ${errors.organizationName ? 'error' : ''}`}
+                                placeholder="Organization Name"
+                                value={formData.organizationName}
+                                onChange={handleChange}
+                                disabled={loading}
+                            />
+                            {errors.organizationName && <span className="form-error">{errors.organizationName}</span>}
+                        </div>
+
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="contactEmail" className="form-label">Contact Email *</label>
+                                <input
+                                    type="email"
+                                    id="contactEmail"
+                                    name="contactEmail"
+                                    className={`form-input ${errors.contactEmail ? 'error' : ''}`}
+                                    placeholder="Contact Email"
+                                    value={formData.contactEmail}
+                                    onChange={handleChange}
+                                    disabled={loading}
+                                />
+                                {errors.contactEmail && <span className="form-error">{errors.contactEmail}</span>}
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="contactPhone" className="form-label">Contact Phone</label>
+                                <input
+                                    type="tel"
+                                    id="contactPhone"
+                                    name="contactPhone"
+                                    className="form-input"
+                                    placeholder="Contact Phone"
+                                    value={formData.contactPhone}
+                                    onChange={handleChange}
+                                    disabled={loading}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="websiteUrl" className="form-label">Website URL</label>
+                            <input
+                                type="url"
+                                id="websiteUrl"
+                                name="websiteUrl"
+                                className="form-input"
+                                placeholder="https://example.com"
+                                value={formData.websiteUrl}
+                                onChange={handleChange}
+                                disabled={loading}
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="description" className="form-label">Description</label>
+                            <textarea
+                                id="description"
+                                name="description"
+                                className="form-input"
+                                placeholder="Tell us about your organization"
+                                value={formData.description}
+                                onChange={handleChange}
+                                disabled={loading}
+                                rows="3"
+                            />
+                        </div>
+                    </div>
+                )}
 
                 <button
                     type="submit"
