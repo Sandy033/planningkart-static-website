@@ -6,7 +6,7 @@ export const fetchCategories = createAsyncThunk(
     'categories/fetchCategories',
     async (_, { rejectWithValue }) => {
         try {
-            const data = await api.get('/categories');
+            const data = await api.get('/event-categories');
             return data;
         } catch (error) {
             return rejectWithValue(error.message || 'Failed to fetch categories');
@@ -18,7 +18,7 @@ export const createCategory = createAsyncThunk(
     'categories/createCategory',
     async (categoryData, { rejectWithValue }) => {
         try {
-            const data = await api.post('/categories', categoryData);
+            const data = await api.post('/event-categories', categoryData);
             return data;
         } catch (error) {
             return rejectWithValue(error.message || 'Failed to create category');
@@ -30,7 +30,7 @@ export const updateCategory = createAsyncThunk(
     'categories/updateCategory',
     async ({ id, data }, { rejectWithValue }) => {
         try {
-            const response = await api.put(`/categories/${id}`, data);
+            const response = await api.put(`/event-categories/${id}`, data);
             return response;
         } catch (error) {
             return rejectWithValue(error.message || 'Failed to update category');
@@ -42,7 +42,7 @@ export const deleteCategory = createAsyncThunk(
     'categories/deleteCategory',
     async (id, { rejectWithValue }) => {
         try {
-            await api.delete(`/categories/${id}`);
+            await api.delete(`/event-categories/${id}`);
             return id;
         } catch (error) {
             return rejectWithValue(error.message || 'Failed to delete category');
