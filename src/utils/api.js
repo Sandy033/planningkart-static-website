@@ -55,6 +55,20 @@ export const api = {
         });
         return handleResponse(response);
     },
+    postFormData: async (endpoint, formData) => {
+        const token = localStorage.getItem('authToken');
+        const headers = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        // Don't set Content-Type for FormData - browser will set it with boundary
+        const response = await fetch(`${BASE_URL}${endpoint}`, {
+            method: 'POST',
+            headers: headers,
+            body: formData,
+        });
+        return handleResponse(response);
+    },
     delete: async (endpoint) => {
         const response = await fetch(`${BASE_URL}${endpoint}`, {
             method: 'DELETE',

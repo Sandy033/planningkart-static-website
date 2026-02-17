@@ -18,8 +18,24 @@ export const createEvent = createAsyncThunk(
     'events/createEvent',
     async (eventData, { rejectWithValue }) => {
         try {
-            const data = await api.post('/events', eventData);
-            return data;
+            // If eventData contains an image file, use FormData
+            if (eventData.image) {
+                const formData = new FormData();
+                Object.keys(eventData).forEach(key => {
+                    if (key === 'ageRestriction') {
+                        formData.append(key, JSON.stringify(eventData[key]));
+                    } else if (key === 'image') {
+                        formData.append(key, eventData[key]);
+                    } else if (eventData[key] !== null && eventData[key] !== undefined) {
+                        formData.append(key, eventData[key]);
+                    }
+                });
+                const data = await api.postFormData('/events', formData);
+                return data;
+            } else {
+                const data = await api.post('/events', eventData);
+                return data;
+            }
         } catch (error) {
             return rejectWithValue(error.message || 'Failed to create event');
         }
@@ -30,8 +46,24 @@ export const updateEvent = createAsyncThunk(
     'events/updateEvent',
     async ({ id, data }, { rejectWithValue }) => {
         try {
-            const response = await api.put(`/events/${id}`, data);
-            return response;
+            // If data contains an image file, use FormData
+            if (data.image) {
+                const formData = new FormData();
+                Object.keys(data).forEach(key => {
+                    if (key === 'ageRestriction') {
+                        formData.append(key, JSON.stringify(data[key]));
+                    } else if (key === 'image') {
+                        formData.append(key, data[key]);
+                    } else if (data[key] !== null && data[key] !== undefined) {
+                        formData.append(key, data[key]);
+                    }
+                });
+                const response = await api.postFormData(`/events/${id}`, formData);
+                return response;
+            } else {
+                const response = await api.put(`/events/${id}`, data);
+                return response;
+            }
         } catch (error) {
             return rejectWithValue(error.message || 'Failed to update event');
         }
