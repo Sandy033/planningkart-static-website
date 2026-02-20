@@ -14,6 +14,27 @@ export const fetchEvents = createAsyncThunk(
     }
 );
 
+// Fetch events for the currently authenticated organizer
+export const fetchOrganizerEvents = createAsyncThunk(
+    'events/fetchOrganizerEvents',
+    async (_, { rejectWithValue, getState }) => {
+        try {
+            const data = await api.get('/events');
+            let events = Array.isArray(data) ? data : (data.content || data.events || []);
+
+            // Backend returns all events, so filter them by organizer ID
+            const user = getState()?.auth?.user;
+            if (user?.role === 'ORGANIZER' && user?.organizer?.id) {
+                events = events.filter(e => e.organizer?.id === user.organizer.id);
+            }
+
+            return events;
+        } catch (error) {
+            return rejectWithValue(error.message || 'Failed to fetch organizer events');
+        }
+    }
+);
+
 export const createEvent = createAsyncThunk(
     'events/createEvent',
     async (eventData, { rejectWithValue }) => {
@@ -118,6 +139,19 @@ const eventSlice = createSlice({
                 state.items = action.payload;
             })
             .addCase(fetchEvents.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            // Fetch organizer events
+            .addCase(fetchOrganizerEvents.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchOrganizerEvents.fulfilled, (state, action) => {
+                state.loading = false;
+                state.items = action.payload;
+            })
+            .addCase(fetchOrganizerEvents.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })

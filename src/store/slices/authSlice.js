@@ -28,6 +28,7 @@ export const signupUser = createAsyncThunk(
                 role: data.role,
                 firstName: data.firstName || signupData.firstName,
                 lastName: data.lastName || signupData.lastName,
+                organizer: data.organizer,
             }));
 
             return {
@@ -38,6 +39,7 @@ export const signupUser = createAsyncThunk(
                     role: data.role,
                     firstName: data.firstName || signupData.firstName,
                     lastName: data.lastName || signupData.lastName,
+                    organizer: data.organizer,
                 },
             };
         } catch (error) {
@@ -74,6 +76,7 @@ export const signupOrganizer = createAsyncThunk(
                 role: data.role,
                 firstName: data.firstName || '',
                 lastName: '',
+                organizer: data.organizer,
             }));
 
             return {
@@ -84,6 +87,7 @@ export const signupOrganizer = createAsyncThunk(
                     role: data.role,
                     firstName: data.firstName || '',
                     lastName: '',
+                    organizer: data.organizer,
                 },
             };
         } catch (error) {
@@ -120,6 +124,7 @@ export const loginUser = createAsyncThunk(
                 role: data.role,
                 firstName: data.firstName,
                 lastName: data.lastName,
+                organizer: data.organizer,
             }));
 
             return {
@@ -130,6 +135,7 @@ export const loginUser = createAsyncThunk(
                     role: data.role,
                     firstName: data.firstName,
                     lastName: data.lastName,
+                    organizer: data.organizer,
                 },
             };
         } catch (error) {

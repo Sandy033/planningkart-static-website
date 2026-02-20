@@ -155,11 +155,6 @@ const SignupModal = () => {
                 email: '',
                 password: '',
                 phoneNumber: '',
-                firstName: '',
-                lastName: '',
-                email: '',
-                password: '',
-                phoneNumber: '',
                 dateOfBirth: '',
                 organizationName: '',
                 contactEmail: '',
@@ -184,11 +179,6 @@ const SignupModal = () => {
     const handleClose = () => {
         dispatch(closeModal());
         setFormData({
-            firstName: '',
-            lastName: '',
-            email: '',
-            password: '',
-            phoneNumber: '',
             firstName: '',
             lastName: '',
             email: '',

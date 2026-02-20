@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Navbar from '../../components/Navbar/Navbar';
-import { fetchEvents } from '../../store/slices/eventSlice';
 import { fetchCategories } from '../../store/slices/categorySlice';
+import { fetchOrganizerEvents } from '../../store/slices/eventSlice';
 import EventForm from '../../components/EventForm/EventForm';
 import EventList from '../../components/EventList/EventList';
 import './OrganizerDashboard.css';
@@ -11,15 +11,16 @@ const OrganizerDashboard = () => {
     const [showForm, setShowForm] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
     const dispatch = useDispatch();
-    const { user } = useSelector((state) => state.auth);
-    const { items: events } = useSelector((state) => state.events);
+    const { items: events, loading } = useSelector((state) => state.events);
 
-    useEffect(() => {
-        dispatch(fetchEvents());
+    const loadData = useCallback(() => {
+        dispatch(fetchOrganizerEvents());
         dispatch(fetchCategories());
     }, [dispatch]);
 
-    const myEvents = events.filter(event => event.organizerId === user?.id);
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
 
     const handleCreateNew = () => {
         setEditingEvent(null);
@@ -36,6 +37,13 @@ const OrganizerDashboard = () => {
         setEditingEvent(null);
     };
 
+    const handleFormSuccess = () => {
+        setShowForm(false);
+        setEditingEvent(null);
+        // Refresh the events list
+        dispatch(fetchOrganizerEvents());
+    };
+
     return (
         <div className="dashboard">
             <Navbar />
@@ -45,9 +53,11 @@ const OrganizerDashboard = () => {
                         <h1>Organizer Dashboard</h1>
                         <p>Create and manage your events</p>
                     </div>
-                    <button className="btn btn-primary" onClick={handleCreateNew}>
-                        ➕ Create New Event
-                    </button>
+                    {!showForm && (
+                        <button className="btn btn-primary" onClick={handleCreateNew}>
+                            ➕ Create New Event
+                        </button>
+                    )}
                 </div>
 
                 <div className="dashboard-content">
@@ -59,12 +69,16 @@ const OrganizerDashboard = () => {
                                     Cancel
                                 </button>
                             </div>
-                            <EventForm event={editingEvent} onSuccess={handleFormClose} />
+                            <EventForm event={editingEvent} onSuccess={handleFormSuccess} />
                         </div>
                     ) : (
                         <div className="events-section">
-                            <h3>My Events ({myEvents.length})</h3>
-                            <EventList events={myEvents} onEdit={handleEdit} />
+                            <h3>My Events ({events.length})</h3>
+                            {loading ? (
+                                <p style={{ color: 'var(--text-secondary)' }}>Loading events…</p>
+                            ) : (
+                                <EventList events={events} onEdit={handleEdit} />
+                            )}
                         </div>
                     )}
                 </div>

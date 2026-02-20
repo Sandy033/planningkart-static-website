@@ -1,153 +1,342 @@
-import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { createEvent, updateEvent } from '../../store/slices/eventSlice';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import {
+    createDraftEvent,
+    updateDraftEvent,
+    uploadEventImage,
+    deleteEventImage,
+    setPrimaryImage,
+    validateEvent,
+    markEventAsReady,
+} from '../../services/eventService';
 import './EventForm.css';
 
+const MAX_IMAGES = 10;
+const MAX_FILE_SIZE_MB = 10;
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
+
+const generateSlug = (title) =>
+    title
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+
 const EventForm = ({ event, onSuccess }) => {
-    const [formData, setFormData] = useState({
-        title: '',
-        slug: '',
-        description: '',
-        shortDescription: '',
-        categoryId: '',
-        durationMinutes: '',
-        minParticipants: '',
-        maxParticipants: '',
-        ageRestrictionMin: '',
-        ageRestrictionMax: '',
-        difficultyLevel: '',
-        status: 'DRAFT',
-        featured: false,
-        image: null,
-    });
-
-    const [imagePreview, setImagePreview] = useState(null);
-
-    const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
     const { items: categories } = useSelector((state) => state.categories);
-    const { loading } = useSelector((state) => state.events);
 
+    // Draft state
+    const [eventId, setEventId] = useState(event?.id || null);
+    const [draftInitializing, setDraftInitializing] = useState(!event);
+
+    // Form data
+    const [formData, setFormData] = useState({
+        title: event?.title || '',
+        slug: event?.slug || '',
+        description: event?.description || '',
+        shortDescription: event?.shortDescription || '',
+        categoryId: event?.category?.id || event?.categoryId || '',
+        durationMinutes: event?.durationMinutes || '',
+        minParticipants: event?.minParticipants || '',
+        maxParticipants: event?.maxParticipants || '',
+        ageRestrictionMin: event?.ageRestriction?.min || '',
+        ageRestrictionMax: event?.ageRestriction?.max || '',
+        difficultyLevel: event?.difficultyLevel || '',
+        featured: event?.featured || false,
+    });
+
+    // Image state
+    const [uploadedImages, setUploadedImages] = useState([]);
+    const [uploadQueue, setUploadQueue] = useState([]); // { id, file, progress, status, error }
+    const [isDragOver, setIsDragOver] = useState(false);
+
+    // Save state
+    const [saveStatus, setSaveStatus] = useState('saved'); // 'saved' | 'saving' | 'unsaved'
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+    // Submit state
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [validationErrors, setValidationErrors] = useState([]);
+    const [submitError, setSubmitError] = useState(null);
+
+    const autoSaveTimerRef = useRef(null);
+    const fileInputRef = useRef(null);
+
+    // ─── Initialize draft on mount ───────────────────────────────────────────
     useEffect(() => {
         if (event) {
-            setFormData({
-                title: event.title || '',
-                slug: event.slug || '',
-                description: event.description || '',
-                shortDescription: event.shortDescription || '',
-                categoryId: event.category?.id || event.categoryId || '',
-                durationMinutes: event.durationMinutes || '',
-                minParticipants: event.minParticipants || '',
-                maxParticipants: event.maxParticipants || '',
-                ageRestrictionMin: event.ageRestriction?.min || '',
-                ageRestrictionMax: event.ageRestriction?.max || '',
-                difficultyLevel: event.difficultyLevel || '',
-                status: event.status || 'DRAFT',
-                featured: event.featured || false,
-                image: null,
-            });
+            // Editing existing event — load its images
+            setDraftInitializing(false);
+            return;
         }
-    }, [event]);
 
-    // Auto-generate slug from title
-    const generateSlug = (title) => {
-        return title
-            .toLowerCase()
-            .trim()
-            .replace(/[^\w\s-]/g, '') // Remove special characters
-            .replace(/\s+/g, '-') // Replace spaces with hyphens
-            .replace(/-+/g, '-'); // Replace multiple hyphens with single hyphen
-    };
-
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-
-        if (name === 'title') {
-            setFormData({
-                ...formData,
-                title: value,
-                slug: generateSlug(value),
-            });
-        } else if (type === 'checkbox') {
-            setFormData({
-                ...formData,
-                [name]: checked,
-            });
-        } else {
-            setFormData({
-                ...formData,
-                [name]: value,
-            });
-        }
-    };
-
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setFormData({
-                ...formData,
-                image: file,
-            });
-
-            // Create preview
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        // Validate age restriction
-        if (formData.ageRestrictionMin && formData.ageRestrictionMax) {
-            if (parseInt(formData.ageRestrictionMin) >= parseInt(formData.ageRestrictionMax)) {
-                alert('Minimum age must be less than maximum age');
-                return;
+        const initDraft = async () => {
+            try {
+                const firstCategoryId = categories[0]?.id;
+                const draft = await createDraftEvent({
+                    title: 'Untitled Event',
+                    slug: `event-${Date.now()}`,
+                    description: '',
+                    category: firstCategoryId ? { id: firstCategoryId } : undefined,
+                    organizer: user?.organizer ? user.organizer : undefined,
+                });
+                setEventId(draft.id);
+            } catch (err) {
+                console.error('Failed to create draft:', err);
+                setSubmitError('Failed to initialize event draft. Please try again.');
+            } finally {
+                setDraftInitializing(false);
             }
-        }
+        };
 
-        // Prepare event data
-        const eventData = {
-            title: formData.title,
-            slug: formData.slug,
+        initDraft();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ─── Auto-save ───────────────────────────────────────────────────────────
+    const buildEventPayload = useCallback(() => {
+        const payload = {
+            title: formData.title || 'Untitled Event',
+            slug: formData.slug || `event-${Date.now()}`,
             description: formData.description,
             shortDescription: formData.shortDescription || null,
-            categoryId: parseInt(formData.categoryId),
+            category: formData.categoryId ? { id: parseInt(formData.categoryId) } : undefined,
+            organizer: user?.organizer ? user.organizer : undefined,
             durationMinutes: formData.durationMinutes ? parseInt(formData.durationMinutes) : null,
             minParticipants: formData.minParticipants ? parseInt(formData.minParticipants) : null,
             maxParticipants: formData.maxParticipants ? parseInt(formData.maxParticipants) : null,
             difficultyLevel: formData.difficultyLevel || null,
-            status: formData.status,
             featured: formData.featured,
         };
-
-        // Add age restriction if both min and max are provided
         if (formData.ageRestrictionMin && formData.ageRestrictionMax) {
-            eventData.ageRestriction = {
+            payload.ageRestriction = {
                 min: parseInt(formData.ageRestrictionMin),
                 max: parseInt(formData.ageRestrictionMax),
             };
         }
+        return payload;
+    }, [formData, user]);
 
-        // Add image if provided
-        if (formData.image) {
-            eventData.image = formData.image;
+    const saveDraft = useCallback(async () => {
+        if (!eventId || !hasUnsavedChanges) return;
+        setSaveStatus('saving');
+        try {
+            await updateDraftEvent(eventId, buildEventPayload());
+            setSaveStatus('saved');
+            setHasUnsavedChanges(false);
+        } catch (err) {
+            console.error('Auto-save failed:', err);
+            setSaveStatus('unsaved');
         }
+    }, [eventId, hasUnsavedChanges, buildEventPayload]);
 
-        if (event) {
-            await dispatch(updateEvent({ id: event.id, data: eventData }));
-        } else {
-            await dispatch(createEvent(eventData));
-        }
+    useEffect(() => {
+        if (!hasUnsavedChanges) return;
+        clearTimeout(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = setTimeout(saveDraft, AUTO_SAVE_INTERVAL);
+        return () => clearTimeout(autoSaveTimerRef.current);
+    }, [hasUnsavedChanges, saveDraft]);
 
-        onSuccess();
+    // ─── Form change handlers ─────────────────────────────────────────────────
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData((prev) => {
+            const updated = {
+                ...prev,
+                [name]: type === 'checkbox' ? checked : value,
+            };
+            if (name === 'title') {
+                updated.slug = generateSlug(value);
+            }
+            return updated;
+        });
+        setHasUnsavedChanges(true);
+        setSaveStatus('unsaved');
     };
 
+    // ─── Image upload helpers ─────────────────────────────────────────────────
+    const validateFile = (file) => {
+        if (!ACCEPTED_TYPES.includes(file.type)) {
+            return 'Only JPEG, PNG, and WebP images are allowed.';
+        }
+        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+            return `File size must be under ${MAX_FILE_SIZE_MB} MB.`;
+        }
+        return null;
+    };
+
+    const processFiles = async (files) => {
+        if (!eventId) return;
+        const remaining = MAX_IMAGES - uploadedImages.length - uploadQueue.filter(q => q.status === 'uploading').length;
+        const filesToProcess = Array.from(files).slice(0, remaining);
+
+        for (const file of filesToProcess) {
+            const fileError = validateFile(file);
+            const queueId = `${Date.now()}-${Math.random()}`;
+
+            if (fileError) {
+                setUploadQueue((prev) => [
+                    ...prev,
+                    { id: queueId, file, progress: 0, status: 'error', error: fileError },
+                ]);
+                continue;
+            }
+
+            setUploadQueue((prev) => [
+                ...prev,
+                { id: queueId, file, progress: 0, status: 'uploading', error: null },
+            ]);
+
+            try {
+                const isPrimary = uploadedImages.length === 0;
+                const displayOrder = uploadedImages.length + 1;
+
+                const uploaded = await uploadEventImage(
+                    eventId,
+                    file,
+                    isPrimary,
+                    displayOrder,
+                    (progress) => {
+                        setUploadQueue((prev) =>
+                            prev.map((q) => (q.id === queueId ? { ...q, progress } : q))
+                        );
+                    }
+                );
+
+                setUploadedImages((prev) => [...prev, uploaded]);
+                setUploadQueue((prev) =>
+                    prev.map((q) => (q.id === queueId ? { ...q, status: 'done', progress: 100 } : q))
+                );
+
+                // Remove from queue after a short delay
+                setTimeout(() => {
+                    setUploadQueue((prev) => prev.filter((q) => q.id !== queueId));
+                }, 1500);
+            } catch (err) {
+                setUploadQueue((prev) =>
+                    prev.map((q) =>
+                        q.id === queueId
+                            ? { ...q, status: 'error', error: err.message || 'Upload failed' }
+                            : q
+                    )
+                );
+            }
+        }
+    };
+
+    const handleFileInputChange = (e) => {
+        processFiles(e.target.files);
+        e.target.value = ''; // reset so same file can be re-selected
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragOver(false);
+        processFiles(e.dataTransfer.files);
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setIsDragOver(true);
+    };
+
+    const handleDragLeave = () => setIsDragOver(false);
+
+    const handleDeleteImage = async (imageId) => {
+        try {
+            await deleteEventImage(eventId, imageId);
+            setUploadedImages((prev) => prev.filter((img) => img.id !== imageId));
+        } catch (err) {
+            console.error('Failed to delete image:', err);
+        }
+    };
+
+    const handleSetPrimary = async (imageId) => {
+        try {
+            await setPrimaryImage(eventId, imageId);
+            setUploadedImages((prev) =>
+                prev.map((img) => ({ ...img, isPrimary: img.id === imageId }))
+            );
+        } catch (err) {
+            console.error('Failed to set primary image:', err);
+        }
+    };
+
+    const removeFromQueue = (queueId) => {
+        setUploadQueue((prev) => prev.filter((q) => q.id !== queueId));
+    };
+
+    // ─── Submit for review ────────────────────────────────────────────────────
+    const handleSubmitForReview = async () => {
+        if (!eventId) return;
+        setIsSubmitting(true);
+        setValidationErrors([]);
+        setSubmitError(null);
+
+        try {
+            // Save any pending changes first
+            if (hasUnsavedChanges) {
+                await updateDraftEvent(eventId, buildEventPayload());
+                setHasUnsavedChanges(false);
+            }
+
+            // Validate
+            const validation = await validateEvent(eventId);
+            if (!validation.valid) {
+                setValidationErrors(validation.errors || ['Event is not complete.']);
+                setIsSubmitting(false);
+                return;
+            }
+
+            // Mark as ready
+            await markEventAsReady(eventId);
+            onSuccess();
+        } catch (err) {
+            setSubmitError(err.message || 'Submission failed. Please try again.');
+            setIsSubmitting(false);
+        }
+    };
+
+    // ─── Save draft manually ──────────────────────────────────────────────────
+    const handleSaveDraft = async () => {
+        if (!eventId) return;
+        setSaveStatus('saving');
+        try {
+            await updateDraftEvent(eventId, buildEventPayload());
+            setSaveStatus('saved');
+            setHasUnsavedChanges(false);
+        } catch (err) {
+            setSaveStatus('unsaved');
+            setSubmitError(err.message || 'Save failed.');
+        }
+    };
+
+    // ─── Render ───────────────────────────────────────────────────────────────
+    if (draftInitializing) {
+        return (
+            <div className="event-form-loading">
+                <div className="spinner" />
+                <p>Initializing draft event…</p>
+            </div>
+        );
+    }
+
+    const totalImages = uploadedImages.length;
+    const activeUploads = uploadQueue.filter((q) => q.status === 'uploading').length;
+    const canAddMore = totalImages + activeUploads < MAX_IMAGES;
+
     return (
-        <form onSubmit={handleSubmit} className="event-form">
+        <div className="event-form">
+            {/* Save status */}
+            <div className="save-status-bar">
+                {saveStatus === 'saving' && <span className="save-status saving">⏳ Saving…</span>}
+                {saveStatus === 'saved' && <span className="save-status saved">✅ All changes saved</span>}
+                {saveStatus === 'unsaved' && <span className="save-status unsaved">● Unsaved changes</span>}
+            </div>
+
+            {/* Title */}
             <div className="form-group">
                 <label className="form-label">Event Title *</label>
                 <input
@@ -162,22 +351,21 @@ const EventForm = ({ event, onSuccess }) => {
                 />
             </div>
 
+            {/* Slug */}
             <div className="form-group">
-                <label className="form-label">Slug *</label>
+                <label className="form-label">Slug</label>
                 <input
                     type="text"
                     name="slug"
                     className="form-input"
                     value={formData.slug}
-                    onChange={handleChange}
-                    placeholder="auto-generated-from-title"
-                    maxLength="200"
-                    required
                     readOnly
+                    placeholder="auto-generated-from-title"
                 />
                 <small className="form-hint">Auto-generated from title</small>
             </div>
 
+            {/* Description */}
             <div className="form-group">
                 <label className="form-label">Description *</label>
                 <textarea
@@ -191,6 +379,7 @@ const EventForm = ({ event, onSuccess }) => {
                 />
             </div>
 
+            {/* Short Description */}
             <div className="form-group">
                 <label className="form-label">Short Description</label>
                 <textarea
@@ -202,11 +391,10 @@ const EventForm = ({ event, onSuccess }) => {
                     rows="3"
                     maxLength="500"
                 />
-                <small className="form-hint">
-                    {formData.shortDescription.length}/500 characters
-                </small>
+                <small className="form-hint">{formData.shortDescription.length}/500 characters</small>
             </div>
 
+            {/* Category + Duration */}
             <div className="form-row">
                 <div className="form-group">
                     <label className="form-label">Category *</label>
@@ -218,14 +406,13 @@ const EventForm = ({ event, onSuccess }) => {
                         required
                     >
                         <option value="">Select a category</option>
-                        {categories.map((category) => (
-                            <option key={category.id} value={category.id}>
-                                {category.name}
+                        {categories.map((cat) => (
+                            <option key={cat.id} value={cat.id}>
+                                {cat.name}
                             </option>
                         ))}
                     </select>
                 </div>
-
                 <div className="form-group">
                     <label className="form-label">Duration (minutes)</label>
                     <input
@@ -240,6 +427,7 @@ const EventForm = ({ event, onSuccess }) => {
                 </div>
             </div>
 
+            {/* Participants */}
             <div className="form-row">
                 <div className="form-group">
                     <label className="form-label">Min Participants</label>
@@ -253,7 +441,6 @@ const EventForm = ({ event, onSuccess }) => {
                         min="1"
                     />
                 </div>
-
                 <div className="form-group">
                     <label className="form-label">Max Participants</label>
                     <input
@@ -268,9 +455,10 @@ const EventForm = ({ event, onSuccess }) => {
                 </div>
             </div>
 
+            {/* Age Restriction */}
             <div className="form-row">
                 <div className="form-group">
-                    <label className="form-label">Age Restriction - Min</label>
+                    <label className="form-label">Min Age</label>
                     <input
                         type="number"
                         name="ageRestrictionMin"
@@ -282,9 +470,8 @@ const EventForm = ({ event, onSuccess }) => {
                         max="120"
                     />
                 </div>
-
                 <div className="form-group">
-                    <label className="form-label">Age Restriction - Max</label>
+                    <label className="form-label">Max Age</label>
                     <input
                         type="number"
                         name="ageRestrictionMax"
@@ -298,6 +485,7 @@ const EventForm = ({ event, onSuccess }) => {
                 </div>
             </div>
 
+            {/* Difficulty + Featured */}
             <div className="form-row">
                 <div className="form-group">
                     <label className="form-label">Difficulty Level</label>
@@ -313,56 +501,172 @@ const EventForm = ({ event, onSuccess }) => {
                         <option value="ADVANCED">Advanced</option>
                     </select>
                 </div>
-
-                <div className="form-group">
-                    <label className="form-label">Status *</label>
-                    <select
-                        name="status"
-                        className="form-select"
-                        value={formData.status}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="DRAFT">Draft</option>
-                        <option value="PUBLISHED">Published</option>
-                        <option value="ARCHIVED">Archived</option>
-                        <option value="CANCELLED">Cancelled</option>
-                    </select>
+                <div className="form-group form-group--center">
+                    <label className="form-checkbox">
+                        <input
+                            type="checkbox"
+                            name="featured"
+                            checked={formData.featured}
+                            onChange={handleChange}
+                        />
+                        <span>Featured Event</span>
+                    </label>
                 </div>
             </div>
 
+            {/* ── Image Upload Section ── */}
             <div className="form-group">
-                <label className="form-label">Event Image</label>
-                <input
-                    type="file"
-                    name="image"
-                    className="form-input"
-                    onChange={handleImageChange}
-                    accept="image/*"
-                />
-                {imagePreview && (
-                    <div className="image-preview">
-                        <img src={imagePreview} alt="Event preview" />
+                <label className="form-label">
+                    Event Images
+                    <span className="form-hint-inline"> ({totalImages}/{MAX_IMAGES} uploaded)</span>
+                </label>
+
+                {/* Drop zone */}
+                {canAddMore && (
+                    <div
+                        className={`image-drop-zone ${isDragOver ? 'drag-over' : ''}`}
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onClick={() => fileInputRef.current?.click()}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
+                        aria-label="Upload images"
+                    >
+                        <div className="drop-zone-icon">🖼️</div>
+                        <p className="drop-zone-text">
+                            Drag &amp; drop images here, or <span className="drop-zone-link">click to browse</span>
+                        </p>
+                        <p className="drop-zone-hint">JPEG, PNG, WebP · Max {MAX_FILE_SIZE_MB} MB each</p>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            multiple
+                            onChange={handleFileInputChange}
+                            style={{ display: 'none' }}
+                        />
                     </div>
+                )}
+
+                {/* Upload queue (in-progress / errors) */}
+                {uploadQueue.length > 0 && (
+                    <div className="upload-queue">
+                        {uploadQueue.map((item) => (
+                            <div key={item.id} className={`upload-item upload-item--${item.status}`}>
+                                <div className="upload-item-info">
+                                    <span className="upload-item-name">{item.file.name}</span>
+                                    {item.status === 'error' && (
+                                        <span className="upload-item-error">{item.error}</span>
+                                    )}
+                                </div>
+                                {item.status === 'uploading' && (
+                                    <div className="upload-progress-bar">
+                                        <div
+                                            className="upload-progress-fill"
+                                            style={{ width: `${item.progress}%` }}
+                                        />
+                                    </div>
+                                )}
+                                {item.status === 'done' && <span className="upload-done-icon">✅</span>}
+                                {item.status === 'error' && (
+                                    <button
+                                        type="button"
+                                        className="upload-remove-btn"
+                                        onClick={() => removeFromQueue(item.id)}
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Uploaded images grid */}
+                {uploadedImages.length > 0 && (
+                    <div className="uploaded-images-grid">
+                        {uploadedImages.map((img) => (
+                            <div
+                                key={img.id}
+                                className={`uploaded-image-card ${img.isPrimary ? 'is-primary' : ''}`}
+                            >
+                                <img
+                                    src={img.imageUrl || img.url}
+                                    alt="Event"
+                                    className="uploaded-image-thumb"
+                                />
+                                {img.isPrimary && (
+                                    <span className="primary-badge">Primary</span>
+                                )}
+                                <div className="image-card-actions">
+                                    {!img.isPrimary && (
+                                        <button
+                                            type="button"
+                                            className="img-action-btn img-action-btn--primary"
+                                            onClick={() => handleSetPrimary(img.id)}
+                                            title="Set as primary"
+                                        >
+                                            ⭐
+                                        </button>
+                                    )}
+                                    <button
+                                        type="button"
+                                        className="img-action-btn img-action-btn--delete"
+                                        onClick={() => handleDeleteImage(img.id)}
+                                        title="Delete image"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {uploadedImages.length === 0 && uploadQueue.length === 0 && (
+                    <p className="form-hint">At least one image is required before submitting for review.</p>
                 )}
             </div>
 
-            <div className="form-group">
-                <label className="form-checkbox">
-                    <input
-                        type="checkbox"
-                        name="featured"
-                        checked={formData.featured}
-                        onChange={handleChange}
-                    />
-                    <span>Featured Event</span>
-                </label>
-            </div>
+            {/* Validation errors */}
+            {validationErrors.length > 0 && (
+                <div className="validation-errors">
+                    <strong>Please fix the following issues:</strong>
+                    <ul>
+                        {validationErrors.map((err, i) => (
+                            <li key={i}>{err}</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
 
-            <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>
-                {loading ? 'Saving...' : event ? 'Update Event' : 'Create Event'}
-            </button>
-        </form>
+            {/* Submit error */}
+            {submitError && (
+                <div className="submit-error">{submitError}</div>
+            )}
+
+            {/* Form actions */}
+            <div className="form-actions">
+                <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={handleSaveDraft}
+                    disabled={!hasUnsavedChanges || saveStatus === 'saving'}
+                >
+                    {saveStatus === 'saving' ? 'Saving…' : 'Save Draft'}
+                </button>
+                <button
+                    type="button"
+                    className="btn btn-primary btn-lg"
+                    onClick={handleSubmitForReview}
+                    disabled={isSubmitting || uploadQueue.some((q) => q.status === 'uploading')}
+                >
+                    {isSubmitting ? 'Submitting…' : 'Submit for Review'}
+                </button>
+            </div>
+        </div>
     );
 };
 
