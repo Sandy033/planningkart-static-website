@@ -11,6 +11,14 @@ export const fetchEvents = createAsyncThunk(
         } catch (error) {
             return rejectWithValue(error.message || 'Failed to fetch events');
         }
+    },
+    {
+        condition: (_, { getState }) => {
+            const { events } = getState();
+            if (events.loading) {
+                return false;
+            }
+        }
     }
 );
 
@@ -31,6 +39,14 @@ export const fetchOrganizerEvents = createAsyncThunk(
             return events;
         } catch (error) {
             return rejectWithValue(error.message || 'Failed to fetch organizer events');
+        }
+    },
+    {
+        condition: (_, { getState }) => {
+            const { events } = getState();
+            if (events.loading) {
+                return false;
+            }
         }
     }
 );

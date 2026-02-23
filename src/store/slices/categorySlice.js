@@ -11,6 +11,14 @@ export const fetchCategories = createAsyncThunk(
         } catch (error) {
             return rejectWithValue(error.message || 'Failed to fetch categories');
         }
+    },
+    {
+        condition: (_, { getState }) => {
+            const { categories } = getState();
+            if (categories.loading) {
+                return false;
+            }
+        }
     }
 );
 
