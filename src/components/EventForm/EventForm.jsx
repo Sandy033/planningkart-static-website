@@ -64,6 +64,7 @@ const EventForm = ({ event, onSuccess }) => {
 
     const autoSaveTimerRef = useRef(null);
     const fileInputRef = useRef(null);
+    const hasInitializedRef = useRef(false);
 
     // ─── Initialize draft on mount ───────────────────────────────────────────
     useEffect(() => {
@@ -72,6 +73,9 @@ const EventForm = ({ event, onSuccess }) => {
             setDraftInitializing(false);
             return;
         }
+
+        if (hasInitializedRef.current) return;
+        hasInitializedRef.current = true;
 
         const initDraft = async () => {
             try {
