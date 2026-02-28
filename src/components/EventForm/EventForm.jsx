@@ -168,6 +168,19 @@ const EventForm = ({ event, onSuccess }) => {
         return payload;
     }, [formData, user, event]);
 
+    // ─── Frontend validation ───────────────────────────────────────────────────
+    const validateForm = useCallback(() => {
+        const errors = [];
+        if (!formData.title?.trim()) errors.push('Title is required.');
+        if (!formData.shortDescription?.trim()) errors.push('Short description is required.');
+        if (!formData.categoryId) errors.push('Category is required.');
+        if (!formData.durationMinutes) errors.push('Duration is required.');
+        if (!formData.difficultyLevel) errors.push('Difficulty level is required.');
+        if (uploadedImages.length === 0) errors.push('At least one image is required.');
+        if (savedPlans.length === 0) errors.push('At least one event plan is required.');
+        return errors;
+    }, [formData, uploadedImages, savedPlans]);
+
     const saveDraft = useCallback(async () => {
         if (!eventId || !hasUnsavedChanges) return;
         setSaveStatus('saving');
@@ -356,12 +369,13 @@ const EventForm = ({ event, onSuccess }) => {
 
     const handleSavePlan = async () => {
         if (!eventId) return;
-        if (!planFormData.title.trim()) {
-            setPlanError('Plan title is required.');
-            return;
-        }
-        if (!planFormData.pricePerPerson) {
-            setPlanError('Price per person is required.');
+        const planErrors = [];
+        if (!planFormData.title.trim()) planErrors.push('Plan title is required.');
+        if (!planFormData.shortDescription?.trim()) planErrors.push('Plan short description is required.');
+        if (!planFormData.pricePerPerson) planErrors.push('Price per person is required.');
+        if (!planFormData.currency) planErrors.push('Currency is required.');
+        if (planErrors.length > 0) {
+            setPlanError(planErrors.join(' '));
             return;
         }
 
@@ -440,7 +454,13 @@ const EventForm = ({ event, onSuccess }) => {
     // ─── Save draft manually ──────────────────────────────────────────────────
     const handleSaveDraft = async () => {
         if (!eventId) return;
+        const errors = validateForm();
+        if (errors.length > 0) {
+            setSubmitError(errors.join(' '));
+            return;
+        }
         setSaveStatus('saving');
+        setSubmitError(null);
         try {
             await updateDraftEvent(eventId, buildEventPayload());
             setSaveStatus('saved');
@@ -491,19 +511,7 @@ const EventForm = ({ event, onSuccess }) => {
                 />
             </div>
 
-            {/* Slug */}
-            <div className="form-group">
-                <label className="form-label">Slug</label>
-                <input
-                    type="text"
-                    name="slug"
-                    className="form-input"
-                    value={formData.slug}
-                    readOnly
-                    placeholder="auto-generated-from-title"
-                />
-                <small className="form-hint">Auto-generated from title</small>
-            </div>
+
 
             {/* Description */}
             <div className="form-group">
@@ -521,7 +529,7 @@ const EventForm = ({ event, onSuccess }) => {
 
             {/* Short Description */}
             <div className="form-group">
-                <label className="form-label">Short Description</label>
+                <label className="form-label">Short Description *</label>
                 <textarea
                     name="shortDescription"
                     className="form-textarea"
@@ -530,8 +538,9 @@ const EventForm = ({ event, onSuccess }) => {
                     placeholder="Brief summary (max 500 characters)"
                     rows="3"
                     maxLength="500"
+                    required
                 />
-                <small className="form-hint">{formData.shortDescription.length}/500 characters</small>
+                <small className="form-hint">{(formData.shortDescription || '').length}/500 characters</small>
             </div>
 
             {/* Category + Duration */}
@@ -554,7 +563,7 @@ const EventForm = ({ event, onSuccess }) => {
                     </select>
                 </div>
                 <div className="form-group">
-                    <label className="form-label">Duration (minutes)</label>
+                    <label className="form-label">Duration (minutes) *</label>
                     <input
                         type="number"
                         name="durationMinutes"
@@ -563,6 +572,7 @@ const EventForm = ({ event, onSuccess }) => {
                         onChange={handleChange}
                         placeholder="e.g., 120"
                         min="1"
+                        required
                     />
                 </div>
             </div>
@@ -628,12 +638,13 @@ const EventForm = ({ event, onSuccess }) => {
             {/* Difficulty + Featured */}
             <div className="form-row">
                 <div className="form-group">
-                    <label className="form-label">Difficulty Level</label>
+                    <label className="form-label">Difficulty Level *</label>
                     <select
                         name="difficultyLevel"
                         className="form-select"
                         value={formData.difficultyLevel}
                         onChange={handleChange}
+                        required
                     >
                         <option value="">Select difficulty</option>
                         <option value="BEGINNER">Beginner</option>
@@ -657,9 +668,12 @@ const EventForm = ({ event, onSuccess }) => {
             {/* ── Media Upload Section ── */}
             <div className="form-group">
                 <label className="form-label">
-                    Event Images
+                    Event Images *
                     <span className="form-hint-inline">({totalImages}/{MAX_IMAGES} uploaded)</span>
                 </label>
+                {uploadedImages.length === 0 && uploadQueue.length === 0 && (
+                    <p className="form-field-error">At least one image is required.</p>
+                )}
 
                 {canAddMore && (
                     <div

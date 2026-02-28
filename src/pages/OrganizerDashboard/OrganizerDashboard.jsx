@@ -7,11 +7,19 @@ import EventForm from '../../components/EventForm/EventForm';
 import EventList from '../../components/EventList/EventList';
 import './OrganizerDashboard.css';
 
+const TABS = ['ALL', 'DRAFT', 'READY', 'PUBLISHED', 'ARCHIVED', 'CANCELLED'];
+
 const OrganizerDashboard = () => {
     const [showForm, setShowForm] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
+    const [activeTab, setActiveTab] = useState('ALL');
     const dispatch = useDispatch();
     const { items: events, loading } = useSelector((state) => state.events);
+
+    // Filter events based on active tab
+    const filteredEvents = events.filter(event =>
+        activeTab === 'ALL' ? true : event.status === activeTab
+    );
 
     const loadData = useCallback(() => {
         dispatch(fetchOrganizerEvents());
@@ -73,11 +81,32 @@ const OrganizerDashboard = () => {
                         </div>
                     ) : (
                         <div className="events-section">
-                            <h3>My Events ({events.length})</h3>
+                            <div className="events-section-header">
+                                <h3>My Events ({filteredEvents.length})</h3>
+                            </div>
+
+                            {/* Tabs Navigation */}
+                            <div className="events-tabs">
+                                {TABS.map(tab => (
+                                    <button
+                                        key={tab}
+                                        className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
+                                        onClick={() => setActiveTab(tab)}
+                                    >
+                                        {tab}
+                                        {tab !== 'ALL' && (
+                                            <span className="tab-count">
+                                                {events.filter(e => e.status === tab).length}
+                                            </span>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+
                             {loading ? (
                                 <p style={{ color: 'var(--text-secondary)' }}>Loading events…</p>
                             ) : (
-                                <EventList events={events} onEdit={handleEdit} />
+                                <EventList events={filteredEvents} onEdit={handleEdit} />
                             )}
                         </div>
                     )}
