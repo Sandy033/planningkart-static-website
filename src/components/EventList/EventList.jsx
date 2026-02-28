@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteEvent } from '../../store/slices/eventSlice';
 import './EventList.css';
@@ -65,6 +66,7 @@ const ImageCarousel = ({ images, title }) => {
 
 // ─── Single Event Card ────────────────────────────────────────────────────────
 const EventListCard = ({ event, onEdit, onDelete, categoryName }) => {
+    const navigate = useNavigate();
     const mediaList = event.medias || event.media || [];
     const images = mediaList.length > 0 ? mediaList : [];
 
@@ -132,6 +134,12 @@ const EventListCard = ({ event, onEdit, onDelete, categoryName }) => {
 
                 {/* Actions */}
                 <div className="el-actions">
+                    <button
+                        className="el-btn el-btn-primary"
+                        onClick={() => navigate(`/events/${event.id}`)}
+                    >
+                        View Details
+                    </button>
                     <button className="el-btn el-btn-outline" onClick={() => onEdit(event)}>Edit</button>
                     <button className="el-btn el-btn-danger" onClick={() => onDelete(event.id)}>Delete</button>
                 </div>

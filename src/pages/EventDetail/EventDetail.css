@@ -1,0 +1,403 @@
+/* ── Page Shell ──────────────────────────────────────────────────────── */
+.ed-page {
+    min-height: 100vh;
+    background: var(--bg-primary);
+}
+
+.ed-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 100px var(--space-6) var(--space-16);
+}
+
+.ed-loading,
+.ed-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: var(--space-4);
+    color: var(--text-secondary);
+}
+
+.ed-spinner {
+    width: 44px;
+    height: 44px;
+    border: 4px solid var(--primary-200);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Back button ─────────────────────────────────────────────────────── */
+.ed-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1.5px solid var(--neutral-300);
+    border-radius: var(--radius-lg);
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    margin-bottom: var(--space-6);
+    transition: all 0.2s;
+}
+
+.ed-back-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* ── Image Gallery ───────────────────────────────────────────────────── */
+.ed-gallery {
+    border-radius: var(--radius-2xl);
+    overflow: hidden;
+    margin-bottom: var(--space-6);
+    background: var(--neutral-100);
+}
+
+.ed-gallery-main {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--neutral-100);
+}
+
+.ed-gallery-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.ed-gal-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    z-index: 2;
+}
+
+.ed-gal-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.ed-gal-prev {
+    left: 16px;
+}
+
+.ed-gal-next {
+    right: 16px;
+}
+
+.ed-gal-counter {
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 2;
+}
+
+.ed-gallery-thumbs {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+    background: var(--neutral-100);
+    overflow-x: auto;
+}
+
+.ed-thumb {
+    flex-shrink: 0;
+    width: 80px;
+    height: 54px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 2px solid transparent;
+    padding: 0;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    background: none;
+}
+
+.ed-thumb.active {
+    border-color: var(--primary);
+}
+
+.ed-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ed-gallery-placeholder {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--neutral-100);
+    border-radius: var(--radius-2xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--space-6);
+    font-size: 5rem;
+    font-weight: 800;
+    color: var(--primary);
+    opacity: 0.2;
+}
+
+/* ── Meta badges ─────────────────────────────────────────────────────── */
+.ed-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+}
+
+.ed-status-pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #fff;
+}
+
+.ed-cat-pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(124, 58, 237, 0.12);
+    color: var(--primary);
+}
+
+.ed-diff-pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* ── Title / Short desc ──────────────────────────────────────────────── */
+.ed-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-3) 0;
+    line-height: 1.25;
+}
+
+.ed-short-desc {
+    font-size: 1.0625rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin: 0 0 var(--space-6) 0;
+}
+
+/* ── Quick info chips ────────────────────────────────────────────────── */
+.ed-quick-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-bottom: var(--space-8);
+}
+
+.ed-info-chip {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-xl);
+    padding: 12px 20px;
+    flex: 1;
+    min-width: 160px;
+}
+
+.ed-info-chip--featured {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: rgba(251, 191, 36, 0.3);
+}
+
+.ed-info-icon {
+    font-size: 1.5rem;
+}
+
+.ed-info-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    margin: 0 0 2px 0;
+}
+
+.ed-info-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* ── Sections ─────────────────────────────────────────────────────────── */
+.ed-section {
+    margin-bottom: var(--space-10);
+}
+
+.ed-section-title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-5) 0;
+    padding-bottom: var(--space-3);
+    border-bottom: 2px solid var(--neutral-200);
+}
+
+.ed-description {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.75;
+    margin: 0;
+    white-space: pre-line;
+}
+
+/* ── Plans grid ──────────────────────────────────────────────────────── */
+.ed-plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-5);
+}
+
+.ed-plan-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.ed-plan-card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-200);
+}
+
+.ed-plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-3);
+}
+
+.ed-plan-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.ed-plan-price {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: var(--primary);
+    white-space: nowrap;
+}
+
+.ed-plan-price small {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
+}
+
+.ed-plan-short {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.ed-plan-desc {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.ed-plan-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid var(--neutral-200);
+    padding-top: var(--space-3);
+}
+
+.ed-plan-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.ed-item-check {
+    font-size: 0.8rem;
+    color: #10b981;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .ed-title {
+        font-size: 1.5rem;
+    }
+
+    .ed-container {
+        padding-top: 90px;
+    }
+
+    .ed-plans-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ed-quick-info {
+        flex-direction: column;
+    }
+
+    .ed-info-chip {
+        min-width: unset;
+    }
+}

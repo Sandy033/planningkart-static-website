@@ -283,6 +283,17 @@
     background: rgba(124, 58, 237, 0.06);
 }
 
+.el-btn-primary {
+    background: linear-gradient(135deg, #7c3aed 0%, #9d50db 100%);
+    color: #fff;
+    border: none;
+}
+
+.el-btn-primary:hover {
+    opacity: 0.9;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+}
+
 .el-btn-danger {
     background: rgba(239, 68, 68, 0.08);
     color: #ef4444;

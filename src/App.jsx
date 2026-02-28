@@ -3,6 +3,7 @@ import { Provider } from 'react-redux';
 import store from './store/store';
 import LandingPage from './pages/LandingPage/LandingPage';
 import OrganizerDashboard from './pages/OrganizerDashboard/OrganizerDashboard';
+import EventDetail from './pages/EventDetail/EventDetail';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import LoginModal from './components/Auth/LoginModal';
 import SignupModal from './components/Auth/SignupModal';
@@ -23,6 +24,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/events/:id" element={<EventDetail />} />
         </Routes>
         <LoginModal />
         <SignupModal />
