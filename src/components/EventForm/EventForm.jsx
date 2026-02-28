@@ -3,11 +3,13 @@ import { useSelector } from 'react-redux';
 import {
     createDraftEvent,
     updateDraftEvent,
-    uploadEventImage,
-    deleteEventImage,
-    setPrimaryImage,
+    uploadEventMedia,
+    deleteEventMedia,
+    setPrimaryMedia,
     validateEvent,
     markEventAsReady,
+    createEventPlan,
+    deleteEventPlan,
 } from '../../services/eventService';
 import './EventForm.css';
 
@@ -24,6 +26,17 @@ const generateSlug = (title) =>
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-');
 
+const BLANK_PLAN = {
+    title: '',
+    shortDescription: '',
+    description: '',
+    pricePerPerson: '',
+    currency: 'INR',
+    items: [], // EventPlanItems
+};
+
+const BLANK_ITEM = { title: '', description: '' };
+
 const EventForm = ({ event, onSuccess }) => {
     const { user } = useSelector((state) => state.auth);
     const { items: categories } = useSelector((state) => state.categories);
@@ -32,13 +45,14 @@ const EventForm = ({ event, onSuccess }) => {
     const [eventId, setEventId] = useState(event?.id || null);
     const [draftInitializing, setDraftInitializing] = useState(!event);
 
-    // Form data
+    // Form data — support both raw Event model fields and EventResponse DTO field names
     const [formData, setFormData] = useState({
         title: event?.title || '',
         slug: event?.slug || '',
         description: event?.description || '',
         shortDescription: event?.shortDescription || '',
-        categoryId: event?.category?.id || event?.categoryId || '',
+        // EventResponse uses 'eventCategory'; raw Event model uses 'category'
+        categoryId: event?.eventCategory?.id || event?.category?.id || event?.categoryId || '',
         durationMinutes: event?.durationMinutes || '',
         minParticipants: event?.minParticipants || '',
         maxParticipants: event?.maxParticipants || '',
@@ -48,10 +62,31 @@ const EventForm = ({ event, onSuccess }) => {
         featured: event?.featured || false,
     });
 
-    // Image state
-    const [uploadedImages, setUploadedImages] = useState([]);
+    // Media state — EventResponse uses 'medias'; raw Event model uses 'media'
+    const [uploadedImages, setUploadedImages] = useState(
+        (event?.medias || event?.media || []).map(m => ({ ...m }))
+    );
     const [uploadQueue, setUploadQueue] = useState([]); // { id, file, progress, status, error }
     const [isDragOver, setIsDragOver] = useState(false);
+
+    // Plan state — EventResponse uses 'eventPlan'; raw Event model uses 'plans'
+    const [savedPlans, setSavedPlans] = useState(
+        (event?.eventPlan || event?.plans || []).map((p) => ({
+            id: p.id,
+            title: p.title,
+            shortDescription: p.shortDescription,
+            description: p.description,
+            pricePerPerson: p.pricePerPerson,
+            currency: p.currency || 'INR',
+            items: p.items || [],
+        }))
+    );
+    const [planFormOpen, setPlanFormOpen] = useState(false);
+    const [planFormData, setPlanFormData] = useState(BLANK_PLAN);
+    const [itemDraft, setItemDraft] = useState(BLANK_ITEM); // current item being typed
+    const [expandedPlanId, setExpandedPlanId] = useState(null); // for expand/collapse
+    const [savingPlan, setSavingPlan] = useState(false);
+    const [planError, setPlanError] = useState(null);
 
     // Save state
     const [saveStatus, setSaveStatus] = useState('saved'); // 'saved' | 'saving' | 'unsaved'
@@ -69,7 +104,6 @@ const EventForm = ({ event, onSuccess }) => {
     // ─── Initialize draft on mount ───────────────────────────────────────────
     useEffect(() => {
         if (event) {
-            // Editing existing event — load its images
             setDraftInitializing(false);
             return;
         }
@@ -80,12 +114,13 @@ const EventForm = ({ event, onSuccess }) => {
         const initDraft = async () => {
             try {
                 const firstCategoryId = categories[0]?.id;
+                const organizerId = user?.organizer?.id;
                 const draft = await createDraftEvent({
                     title: 'Untitled Event',
                     slug: `event-${Date.now()}`,
-                    description: '',
+                    description: ' ',
                     category: firstCategoryId ? { id: firstCategoryId } : undefined,
-                    organizer: user?.organizer ? user.organizer : undefined,
+                    organizer: organizerId ? { id: organizerId } : undefined,
                 });
                 setEventId(draft.id);
             } catch (err) {
@@ -101,18 +136,28 @@ const EventForm = ({ event, onSuccess }) => {
 
     // ─── Auto-save ───────────────────────────────────────────────────────────
     const buildEventPayload = useCallback(() => {
+        const organizerId = user?.organizer?.id;
         const payload = {
             title: formData.title || 'Untitled Event',
             slug: formData.slug || `event-${Date.now()}`,
-            description: formData.description,
+            description: formData.description || ' ',
             shortDescription: formData.shortDescription || null,
-            category: formData.categoryId ? { id: parseInt(formData.categoryId) } : undefined,
-            organizer: user?.organizer ? user.organizer : undefined,
+            category: formData.categoryId
+                ? { id: parseInt(formData.categoryId) }
+                // fallback: read from the event prop whichever DTO field exists
+                : (event?.eventCategory?.id || event?.category?.id)
+                    ? { id: event?.eventCategory?.id || event?.category?.id }
+                    : undefined,
+            organizer: organizerId ? { id: organizerId } : undefined,
             durationMinutes: formData.durationMinutes ? parseInt(formData.durationMinutes) : null,
             minParticipants: formData.minParticipants ? parseInt(formData.minParticipants) : null,
             maxParticipants: formData.maxParticipants ? parseInt(formData.maxParticipants) : null,
             difficultyLevel: formData.difficultyLevel || null,
             featured: formData.featured,
+            // status must be sent to satisfy @Column(nullable=false)
+            status: event?.status || 'DRAFT',
+            // Pass saved plan IDs so the backend associates them with the event
+            plans: savedPlans.map((p) => ({ id: p.id })),
         };
         if (formData.ageRestrictionMin && formData.ageRestrictionMax) {
             payload.ageRestriction = {
@@ -121,7 +166,7 @@ const EventForm = ({ event, onSuccess }) => {
             };
         }
         return payload;
-    }, [formData, user]);
+    }, [formData, user, event]);
 
     const saveDraft = useCallback(async () => {
         if (!eventId || !hasUnsavedChanges) return;
@@ -137,11 +182,12 @@ const EventForm = ({ event, onSuccess }) => {
     }, [eventId, hasUnsavedChanges, buildEventPayload]);
 
     useEffect(() => {
-        if (!hasUnsavedChanges) return;
+        // Don't auto-save while the plan form is open — avoid spurious PUTs
+        if (!hasUnsavedChanges || planFormOpen) return;
         clearTimeout(autoSaveTimerRef.current);
         autoSaveTimerRef.current = setTimeout(saveDraft, AUTO_SAVE_INTERVAL);
         return () => clearTimeout(autoSaveTimerRef.current);
-    }, [hasUnsavedChanges, saveDraft]);
+    }, [hasUnsavedChanges, planFormOpen, saveDraft]);
 
     // ─── Form change handlers ─────────────────────────────────────────────────
     const handleChange = (e) => {
@@ -160,7 +206,7 @@ const EventForm = ({ event, onSuccess }) => {
         setSaveStatus('unsaved');
     };
 
-    // ─── Image upload helpers ─────────────────────────────────────────────────
+    // ─── Media upload helpers ─────────────────────────────────────────────────
     const validateFile = (file) => {
         if (!ACCEPTED_TYPES.includes(file.type)) {
             return 'Only JPEG, PNG, and WebP images are allowed.';
@@ -197,7 +243,7 @@ const EventForm = ({ event, onSuccess }) => {
                 const isPrimary = uploadedImages.length === 0;
                 const displayOrder = uploadedImages.length + 1;
 
-                const uploaded = await uploadEventImage(
+                const uploaded = await uploadEventMedia(
                     eventId,
                     file,
                     isPrimary,
@@ -214,7 +260,6 @@ const EventForm = ({ event, onSuccess }) => {
                     prev.map((q) => (q.id === queueId ? { ...q, status: 'done', progress: 100 } : q))
                 );
 
-                // Remove from queue after a short delay
                 setTimeout(() => {
                     setUploadQueue((prev) => prev.filter((q) => q.id !== queueId));
                 }, 1500);
@@ -232,7 +277,7 @@ const EventForm = ({ event, onSuccess }) => {
 
     const handleFileInputChange = (e) => {
         processFiles(e.target.files);
-        e.target.value = ''; // reset so same file can be re-selected
+        e.target.value = '';
     };
 
     const handleDrop = (e) => {
@@ -248,28 +293,119 @@ const EventForm = ({ event, onSuccess }) => {
 
     const handleDragLeave = () => setIsDragOver(false);
 
-    const handleDeleteImage = async (imageId) => {
+    const handleDeleteImage = async (mediaId) => {
         try {
-            await deleteEventImage(eventId, imageId);
-            setUploadedImages((prev) => prev.filter((img) => img.id !== imageId));
+            await deleteEventMedia(eventId, mediaId);
+            setUploadedImages((prev) => prev.filter((img) => img.id !== mediaId));
         } catch (err) {
-            console.error('Failed to delete image:', err);
+            console.error('Failed to delete media:', err);
         }
     };
 
-    const handleSetPrimary = async (imageId) => {
+    const handleSetPrimary = async (mediaId) => {
         try {
-            await setPrimaryImage(eventId, imageId);
+            await setPrimaryMedia(eventId, mediaId);
             setUploadedImages((prev) =>
-                prev.map((img) => ({ ...img, isPrimary: img.id === imageId }))
+                prev.map((img) => ({ ...img, isPrimary: img.id === mediaId }))
             );
         } catch (err) {
-            console.error('Failed to set primary image:', err);
+            console.error('Failed to set primary media:', err);
         }
     };
 
     const removeFromQueue = (queueId) => {
         setUploadQueue((prev) => prev.filter((q) => q.id !== queueId));
+    };
+
+    // ─── Plan handlers ────────────────────────────────────────────────────────
+    const handlePlanChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setPlanFormData((prev) => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value,
+        }));
+    };
+
+    const handleTogglePlanForm = () => {
+        setPlanFormOpen((prev) => !prev);
+        setPlanError(null);
+        setPlanFormData(BLANK_PLAN);
+        setItemDraft(BLANK_ITEM);
+    };
+
+    const handleItemDraftChange = (e) => {
+        const { name, value } = e.target;
+        setItemDraft((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleAddItem = () => {
+        if (!itemDraft.title.trim()) return;
+        setPlanFormData((prev) => ({
+            ...prev,
+            items: [...prev.items, { title: itemDraft.title.trim(), description: itemDraft.description.trim() }],
+        }));
+        setItemDraft(BLANK_ITEM);
+    };
+
+    const handleRemoveItem = (index) => {
+        setPlanFormData((prev) => ({
+            ...prev,
+            items: prev.items.filter((_, i) => i !== index),
+        }));
+    };
+
+    const handleSavePlan = async () => {
+        if (!eventId) return;
+        if (!planFormData.title.trim()) {
+            setPlanError('Plan title is required.');
+            return;
+        }
+        if (!planFormData.pricePerPerson) {
+            setPlanError('Price per person is required.');
+            return;
+        }
+
+        setSavingPlan(true);
+        setPlanError(null);
+        try {
+            const created = await createEventPlan(eventId, {
+                title: planFormData.title.trim(),
+                shortDescription: planFormData.shortDescription || null,
+                description: planFormData.description || null,
+                pricePerPerson: parseFloat(planFormData.pricePerPerson),
+                currency: planFormData.currency || 'INR',
+                items: planFormData.items,
+            });
+            setSavedPlans((prev) => [
+                ...prev,
+                {
+                    id: created.id,
+                    title: created.title,
+                    shortDescription: created.shortDescription,
+                    description: created.description,
+                    pricePerPerson: created.pricePerPerson,
+                    currency: created.currency || 'INR',
+                    items: created.items || planFormData.items,
+                },
+            ]);
+            setPlanFormOpen(false);
+            setPlanFormData(BLANK_PLAN);
+            setItemDraft(BLANK_ITEM);
+        } catch (err) {
+            setPlanError(err.message || 'Failed to save plan.');
+        } finally {
+            setSavingPlan(false);
+        }
+    };
+
+    const handleRemovePlan = async (planId) => {
+        try {
+            await deleteEventPlan(planId);
+            setSavedPlans((prev) => prev.filter((p) => p.id !== planId));
+            setHasUnsavedChanges(true);
+        } catch (err) {
+            console.error('Failed to delete plan:', err);
+        }
     };
 
     // ─── Submit for review ────────────────────────────────────────────────────
@@ -280,11 +416,9 @@ const EventForm = ({ event, onSuccess }) => {
         setSubmitError(null);
 
         try {
-            // Save any pending changes first
-            if (hasUnsavedChanges) {
-                await updateDraftEvent(eventId, buildEventPayload());
-                setHasUnsavedChanges(false);
-            }
+            // Save any pending changes first (includes plan IDs)
+            await updateDraftEvent(eventId, buildEventPayload());
+            setHasUnsavedChanges(false);
 
             // Validate
             const validation = await validateEvent(eventId);
@@ -311,6 +445,8 @@ const EventForm = ({ event, onSuccess }) => {
             await updateDraftEvent(eventId, buildEventPayload());
             setSaveStatus('saved');
             setHasUnsavedChanges(false);
+            // Close the form and return to the organizer dashboard
+            onSuccess();
         } catch (err) {
             setSaveStatus('unsaved');
             setSubmitError(err.message || 'Save failed.');
@@ -518,14 +654,13 @@ const EventForm = ({ event, onSuccess }) => {
                 </div>
             </div>
 
-            {/* ── Image Upload Section ── */}
+            {/* ── Media Upload Section ── */}
             <div className="form-group">
                 <label className="form-label">
                     Event Images
-                    <span className="form-hint-inline"> ({totalImages}/{MAX_IMAGES} uploaded)</span>
+                    <span className="form-hint-inline">({totalImages}/{MAX_IMAGES} uploaded)</span>
                 </label>
 
-                {/* Drop zone */}
                 {canAddMore && (
                     <div
                         className={`image-drop-zone ${isDragOver ? 'drag-over' : ''}`}
@@ -554,7 +689,7 @@ const EventForm = ({ event, onSuccess }) => {
                     </div>
                 )}
 
-                {/* Upload queue (in-progress / errors) */}
+                {/* Upload queue */}
                 {uploadQueue.length > 0 && (
                     <div className="upload-queue">
                         {uploadQueue.map((item) => (
@@ -597,8 +732,8 @@ const EventForm = ({ event, onSuccess }) => {
                                 className={`uploaded-image-card ${img.isPrimary ? 'is-primary' : ''}`}
                             >
                                 <img
-                                    src={img.imageUrl || img.url}
-                                    alt="Event"
+                                    src={img.url}
+                                    alt={img.altText || 'Event'}
                                     className="uploaded-image-thumb"
                                 />
                                 {img.isPrimary && (
@@ -631,6 +766,239 @@ const EventForm = ({ event, onSuccess }) => {
 
                 {uploadedImages.length === 0 && uploadQueue.length === 0 && (
                     <p className="form-hint">At least one image is required before submitting for review.</p>
+                )}
+            </div>
+
+            {/* ── Event Plans Section ── */}
+            <div className="plan-section">
+                <div className="plan-section-header">
+                    <div>
+                        <span className="form-label">Event Plans</span>
+                        {savedPlans.length > 0 && (
+                            <span className="form-hint-inline">({savedPlans.length} plan{savedPlans.length !== 1 ? 's' : ''} added)</span>
+                        )}
+                    </div>
+                    <button
+                        type="button"
+                        className={`plan-add-btn ${planFormOpen ? 'plan-add-btn--active' : ''}`}
+                        onClick={handleTogglePlanForm}
+                    >
+                        {planFormOpen ? '✕ Cancel' : '+ Add Plan'}
+                    </button>
+                </div>
+
+                {/* Saved plan cards */}
+                {savedPlans.length > 0 && (
+                    <div className="plan-cards">
+                        {savedPlans.map((plan) => {
+                            const isExpanded = expandedPlanId === plan.id;
+                            return (
+                                <div key={plan.id} className={`plan-card ${isExpanded ? 'plan-card--expanded' : ''}`}>
+                                    <div className="plan-card-info">
+                                        <span className="plan-card-title">{plan.title}</span>
+                                        <span className="plan-card-price">
+                                            {plan.currency} {Number(plan.pricePerPerson).toFixed(2)} / person
+                                        </span>
+                                    </div>
+                                    <div className="plan-card-actions">
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-outline"
+                                            onClick={() => setExpandedPlanId(isExpanded ? null : plan.id)}
+                                            title={isExpanded ? 'Collapse' : 'View details'}
+                                        >
+                                            {isExpanded ? '▲ Hide' : '▼ View'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="plan-card-remove-btn"
+                                            onClick={() => handleRemovePlan(plan.id)}
+                                            title="Remove plan"
+                                        >
+                                            🗑️
+                                        </button>
+                                    </div>
+                                    {isExpanded && (
+                                        <div className="plan-card-details">
+                                            {plan.shortDescription && (
+                                                <p className="plan-detail-short">{plan.shortDescription}</p>
+                                            )}
+                                            {plan.description && (
+                                                <p className="plan-detail-desc">{plan.description}</p>
+                                            )}
+                                            {plan.items && plan.items.length > 0 && (
+                                                <ul className="plan-detail-items">
+                                                    {plan.items.map((item, i) => (
+                                                        <li key={i} className="plan-detail-item">
+                                                            <span className="plan-detail-item-title">{item.title}</span>
+                                                            {item.description && (
+                                                                <span className="plan-detail-item-desc">{item.description}</span>
+                                                            )}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                            {(!plan.items || plan.items.length === 0) && !plan.shortDescription && !plan.description && (
+                                                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>No additional details.</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Collapsible plan form */}
+                {planFormOpen && (
+                    <div className="plan-form-panel">
+                        <h4 className="plan-form-title">New Plan</h4>
+
+                        <div className="form-group">
+                            <label className="form-label">Plan Title *</label>
+                            <input
+                                type="text"
+                                name="title"
+                                className="form-input"
+                                value={planFormData.title}
+                                onChange={handlePlanChange}
+                                placeholder="e.g., Standard Package"
+                                maxLength="100"
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Short Description</label>
+                            <input
+                                type="text"
+                                name="shortDescription"
+                                className="form-input"
+                                value={planFormData.shortDescription}
+                                onChange={handlePlanChange}
+                                placeholder="One-liner summary"
+                                maxLength="500"
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Description</label>
+                            <textarea
+                                name="description"
+                                className="form-textarea"
+                                value={planFormData.description}
+                                onChange={handlePlanChange}
+                                placeholder="Full details of what this plan includes"
+                                rows="3"
+                            />
+                        </div>
+
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label className="form-label">Price Per Person *</label>
+                                <input
+                                    type="number"
+                                    name="pricePerPerson"
+                                    className="form-input"
+                                    value={planFormData.pricePerPerson}
+                                    onChange={handlePlanChange}
+                                    placeholder="e.g., 1999.00"
+                                    min="0"
+                                    step="0.01"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Currency</label>
+                                <input
+                                    type="text"
+                                    name="currency"
+                                    className="form-input"
+                                    value={planFormData.currency}
+                                    onChange={handlePlanChange}
+                                    placeholder="INR"
+                                    maxLength="3"
+                                />
+                            </div>
+                        </div>
+
+                        {/* ── Plan Items ── */}
+                        <div className="form-group">
+                            <label className="form-label">Plan Items</label>
+
+                            {/* Existing items list */}
+                            {planFormData.items.length > 0 && (
+                                <ul className="plan-items-list">
+                                    {planFormData.items.map((item, idx) => (
+                                        <li key={idx} className="plan-item-row">
+                                            <div className="plan-item-info">
+                                                <span className="plan-item-title">{item.title}</span>
+                                                {item.description && (
+                                                    <span className="plan-item-desc">{item.description}</span>
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className="plan-item-remove-btn"
+                                                onClick={() => handleRemoveItem(idx)}
+                                                title="Remove item"
+                                            >
+                                                ✕
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+
+                            {/* New item input */}
+                            <div className="plan-item-add-row">
+                                <input
+                                    type="text"
+                                    name="title"
+                                    className="form-input"
+                                    value={itemDraft.title}
+                                    onChange={handleItemDraftChange}
+                                    placeholder="Item title *"
+                                    maxLength="200"
+                                />
+                                <input
+                                    type="text"
+                                    name="description"
+                                    className="form-input"
+                                    value={itemDraft.description}
+                                    onChange={handleItemDraftChange}
+                                    placeholder="Item description (optional)"
+                                />
+                                <button
+                                    type="button"
+                                    className="btn btn-outline btn-sm"
+                                    onClick={handleAddItem}
+                                    disabled={!itemDraft.title.trim()}
+                                >
+                                    + Add
+                                </button>
+                            </div>
+                        </div>
+
+                        {planError && <div className="submit-error">{planError}</div>}
+
+                        <div className="plan-form-actions">
+                            <button
+                                type="button"
+                                className="btn btn-outline"
+                                onClick={handleTogglePlanForm}
+                                disabled={savingPlan}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={handleSavePlan}
+                                disabled={savingPlan}
+                            >
+                                {savingPlan ? 'Saving…' : 'Save Plan'}
+                            </button>
+                        </div>
+                    </div>
                 )}
             </div>
 

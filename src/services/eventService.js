@@ -41,8 +41,10 @@ export const updateDraftEvent = async (eventId, eventData) => {
     return handleResponse(response);
 };
 
-// Upload an image to an event with progress tracking
-export const uploadEventImage = (eventId, file, isPrimary, displayOrder, onProgress) => {
+// ── Event Media (images/videos) ──────────────────────────────────────────────
+
+// Upload media (image or video) to an event with progress tracking
+export const uploadEventMedia = (eventId, file, isPrimary, displayOrder, onProgress) => {
     return new Promise((resolve, reject) => {
         const formData = new FormData();
         formData.append('file', file);
@@ -50,7 +52,7 @@ export const uploadEventImage = (eventId, file, isPrimary, displayOrder, onProgr
         if (displayOrder !== undefined) formData.append('displayOrder', displayOrder);
 
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', `${BASE_URL}/events/${eventId}/images`);
+        xhr.open('POST', `${BASE_URL}/events/${eventId}/media`);
 
         const token = localStorage.getItem('authToken');
         if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
@@ -85,17 +87,20 @@ export const uploadEventImage = (eventId, file, isPrimary, displayOrder, onProgr
     });
 };
 
-// Get all images for an event
-export const getEventImages = async (eventId) => {
-    const response = await fetch(`${BASE_URL}/events/${eventId}/images`, {
+// Keep legacy alias so any other callers don't break immediately
+export const uploadEventImage = uploadEventMedia;
+
+// Get all media for an event
+export const getEventMedia = async (eventId) => {
+    const response = await fetch(`${BASE_URL}/events/${eventId}/media`, {
         headers: getAuthHeaders(),
     });
     return handleResponse(response);
 };
 
-// Delete an image from an event
-export const deleteEventImage = async (eventId, imageId) => {
-    const response = await fetch(`${BASE_URL}/events/${eventId}/images/${imageId}`, {
+// Delete media from an event
+export const deleteEventMedia = async (eventId, mediaId) => {
+    const response = await fetch(`${BASE_URL}/events/${eventId}/media/${mediaId}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
     });
@@ -106,9 +111,12 @@ export const deleteEventImage = async (eventId, imageId) => {
     return true;
 };
 
-// Set an image as the primary image for an event
-export const setPrimaryImage = async (eventId, imageId) => {
-    const response = await fetch(`${BASE_URL}/events/${eventId}/images/${imageId}/primary`, {
+// Keep legacy alias
+export const deleteEventImage = deleteEventMedia;
+
+// Set a media item as the primary for an event
+export const setPrimaryMedia = async (eventId, mediaId) => {
+    const response = await fetch(`${BASE_URL}/events/${eventId}/media/${mediaId}/primary`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -118,6 +126,42 @@ export const setPrimaryImage = async (eventId, imageId) => {
     });
     return handleResponse(response);
 };
+
+// Keep legacy alias
+export const setPrimaryImage = setPrimaryMedia;
+
+// ── Event Plans ───────────────────────────────────────────────────────────────
+
+// Create an EventPlan linked to an event
+export const createEventPlan = async (eventId, planData) => {
+    const response = await fetch(`${BASE_URL}/event-plans`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders(),
+        },
+        body: JSON.stringify({
+            ...planData,
+            event: { id: eventId },
+        }),
+    });
+    return handleResponse(response);
+};
+
+// Delete an EventPlan by ID
+export const deleteEventPlan = async (planId) => {
+    const response = await fetch(`${BASE_URL}/event-plans/${planId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Delete failed' }));
+        throw new Error(error.message || 'Delete plan failed');
+    }
+    return true;
+};
+
+// ── Event lifecycle ───────────────────────────────────────────────────────────
 
 // Validate event completeness before submission
 export const validateEvent = async (eventId) => {

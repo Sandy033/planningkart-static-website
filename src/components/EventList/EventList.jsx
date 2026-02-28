@@ -2,6 +2,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { deleteEvent } from '../../store/slices/eventSlice';
 import './EventList.css';
 
+// Inline SVG fallback — no external network call
+const makeFallbackSvg = (text) => {
+    const label = encodeURIComponent(text.slice(0, 24));
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%238b5cf6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='18' fill='%23fff'%3E${label}%3C/text%3E%3C/svg%3E`;
+};
+
 const EventList = ({ events, onEdit }) => {
     const dispatch = useDispatch();
     const { items: categories } = useSelector((state) => state.categories);
@@ -51,9 +57,10 @@ const EventList = ({ events, onEdit }) => {
                     statusClass = 'inactive';
                 }
 
-                // Get primary image or first image
-                const primaryImage = event.images?.find(img => img.isPrimary) || event.images?.[0];
-                const imageUrl = event.imageUrl || event.image || (primaryImage ? primaryImage.imageUrl || primaryImage.url : `https://via.placeholder.com/400x300/8b5cf6/ffffff?text=${encodeURIComponent(event.title || 'Event')}`);
+                // Get primary image or first image from media list (EventResponse uses 'medias')
+                const mediaList = event.medias || event.media || [];
+                const primaryImage = mediaList.find(img => img.isPrimary) || mediaList[0];
+                const imageUrl = primaryImage?.url || makeFallbackSvg(event.title || 'Event');
 
                 return (
                     <div key={event.id} className="event-card card-glass" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
@@ -66,7 +73,7 @@ const EventList = ({ events, onEdit }) => {
                                 <div>
                                     <h4 style={{ margin: '0 0 8px 0', fontSize: '1.25rem' }}>{event.title || 'Untitled Event'}</h4>
                                     <p className="event-meta" style={{ margin: 0, display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                        <span className="category-badge">{event.category?.name || 'Unknown'}</span>
+                                        <span className="category-badge">{event.eventCategory?.name || event.category?.name || 'Unknown'}</span>
                                         <span className={`status-badge ${statusClass}`}>
                                             {statusText}
                                         </span>

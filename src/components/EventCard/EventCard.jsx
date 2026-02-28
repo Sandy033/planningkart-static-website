@@ -2,6 +2,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { deleteEvent } from '../../store/slices/eventSlice';
 import './EventCard.css';
 
+// Inline SVG fallback — no external network call
+const makeFallbackSvg = (text) => {
+    const label = encodeURIComponent(text.slice(0, 24));
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%238b5cf6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='18' fill='%23fff'%3E${label}%3C/text%3E%3C/svg%3E`;
+};
+
 const EventCard = ({ event }) => {
     const dispatch = useDispatch();
     const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -21,8 +27,8 @@ const EventCard = ({ event }) => {
         user?.role === 'ORGANIZER' &&
         user?.organizer?.id === event?.organizer?.id;
 
-    const primaryImage = event.images?.find(img => img.isPrimary) || event.images?.[0];
-    const imageUrl = event.imageUrl || event.image || (primaryImage ? primaryImage.imageUrl || primaryImage.url : `https://via.placeholder.com/400x300/8b5cf6/ffffff?text=${encodeURIComponent(event.title || 'Event')}`);
+    const primaryImage = event.media?.find(img => img.isPrimary) || event.media?.[0];
+    const imageUrl = primaryImage?.url || makeFallbackSvg(event.title || 'Event');
 
     return (
         <div className="event-card">
@@ -32,7 +38,11 @@ const EventCard = ({ event }) => {
                     alt={event.title}
                     className="event-image"
                     onError={(e) => {
-                        e.target.src = `https://via.placeholder.com/400x300/8b5cf6/ffffff?text=${encodeURIComponent(event.title || 'Event')}`;
+                        // Guard against infinite error loop
+                        if (!e.target.dataset.fallback) {
+                            e.target.dataset.fallback = 'true';
+                            e.target.src = makeFallbackSvg(event.title || 'Event');
+                        }
                     }}
                 />
                 <div className="event-price-badge">{event.price}</div>

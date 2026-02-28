@@ -33,7 +33,10 @@ export const fetchOrganizerEvents = createAsyncThunk(
             // Backend returns all events, so filter them by organizer ID
             const user = getState()?.auth?.user;
             if (user?.role === 'ORGANIZER' && user?.organizer?.id) {
-                events = events.filter(e => e.organizer?.id === user.organizer.id);
+                // EventResponse DTO uses 'eventOrganizer'; fall back to 'organizer' for compat
+                events = events.filter(e =>
+                    (e.eventOrganizer?.id ?? e.organizer?.id) === user.organizer.id
+                );
             }
 
             return events;
