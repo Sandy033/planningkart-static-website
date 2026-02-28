@@ -7,19 +7,17 @@ import EventForm from '../../components/EventForm/EventForm';
 import EventList from '../../components/EventList/EventList';
 import './OrganizerDashboard.css';
 
-const TABS = ['ALL', 'DRAFT', 'READY', 'PUBLISHED', 'ARCHIVED', 'CANCELLED'];
+const TABS = ['DRAFT', 'READY', 'PUBLISHED', 'ARCHIVED', 'CANCELLED'];
 
 const OrganizerDashboard = () => {
     const [showForm, setShowForm] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
-    const [activeTab, setActiveTab] = useState('ALL');
+    const [activeTab, setActiveTab] = useState('DRAFT');
     const dispatch = useDispatch();
     const { items: events, loading } = useSelector((state) => state.events);
 
     // Filter events based on active tab
-    const filteredEvents = events.filter(event =>
-        activeTab === 'ALL' ? true : event.status === activeTab
-    );
+    const filteredEvents = events.filter(event => event.status === activeTab);
 
     const loadData = useCallback(() => {
         dispatch(fetchOrganizerEvents());
@@ -104,7 +102,7 @@ const OrganizerDashboard = () => {
                             >
                                 {TABS.map(tab => (
                                     <option key={tab} value={tab}>
-                                        {tab}{tab !== 'ALL' ? ` (${events.filter(e => e.status === tab).length})` : ''}
+                                        {tab} ({events.filter(e => e.status === tab).length})
                                     </option>
                                 ))}
                             </select>
@@ -118,11 +116,9 @@ const OrganizerDashboard = () => {
                                         onClick={() => setActiveTab(tab)}
                                     >
                                         {tab}
-                                        {tab !== 'ALL' && (
-                                            <span className="tab-count">
-                                                {events.filter(e => e.status === tab).length}
-                                            </span>
-                                        )}
+                                        <span className="tab-count">
+                                            {events.filter(e => e.status === tab).length}
+                                        </span>
                                     </button>
                                 ))}
                             </div>
