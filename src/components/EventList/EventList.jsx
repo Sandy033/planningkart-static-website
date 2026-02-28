@@ -65,7 +65,7 @@ const ImageCarousel = ({ images, title }) => {
 };
 
 // ─── Single Event Card ────────────────────────────────────────────────────────
-const EventListCard = ({ event, onEdit, onDelete, categoryName }) => {
+const EventListCard = ({ event, onEdit, onDelete, onMoveToDraft, categoryName }) => {
     const navigate = useNavigate();
     const mediaList = event.medias || event.media || [];
     const images = mediaList.length > 0 ? mediaList : [];
@@ -140,7 +140,11 @@ const EventListCard = ({ event, onEdit, onDelete, categoryName }) => {
                     >
                         View Details
                     </button>
-                    <button className="el-btn el-btn-outline" onClick={() => onEdit(event)}>Edit</button>
+                    {event.status === 'READY' ? (
+                        <button className="el-btn el-btn-outline" onClick={() => onMoveToDraft(event.id)}>Move to Draft</button>
+                    ) : (
+                        <button className="el-btn el-btn-outline" onClick={() => onEdit(event)}>Edit</button>
+                    )}
                     <button className="el-btn el-btn-danger" onClick={() => onDelete(event.id)}>Delete</button>
                 </div>
             </div>
@@ -149,7 +153,7 @@ const EventListCard = ({ event, onEdit, onDelete, categoryName }) => {
 };
 
 // ─── Event List ───────────────────────────────────────────────────────────────
-const EventList = ({ events, onEdit }) => {
+const EventList = ({ events, onEdit, onMoveToDraft }) => {
     const dispatch = useDispatch();
     const { items: categories } = useSelector((state) => state.categories);
 
@@ -181,6 +185,7 @@ const EventList = ({ events, onEdit }) => {
                     event={event}
                     onEdit={onEdit}
                     onDelete={handleDelete}
+                    onMoveToDraft={onMoveToDraft}
                     categoryName={getCategoryName(event)}
                 />
             ))}

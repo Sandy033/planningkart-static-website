@@ -635,34 +635,21 @@ const EventForm = ({ event, onSuccess }) => {
                 </div>
             </div>
 
-            {/* Difficulty + Featured */}
-            <div className="form-row">
-                <div className="form-group">
-                    <label className="form-label">Difficulty Level *</label>
-                    <select
-                        name="difficultyLevel"
-                        className="form-select"
-                        value={formData.difficultyLevel}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="">Select difficulty</option>
-                        <option value="BEGINNER">Beginner</option>
-                        <option value="INTERMEDIATE">Intermediate</option>
-                        <option value="ADVANCED">Advanced</option>
-                    </select>
-                </div>
-                <div className="form-group form-group--center">
-                    <label className="form-checkbox">
-                        <input
-                            type="checkbox"
-                            name="featured"
-                            checked={formData.featured}
-                            onChange={handleChange}
-                        />
-                        <span>Featured Event</span>
-                    </label>
-                </div>
+            {/* Difficulty */}
+            <div className="form-group">
+                <label className="form-label">Difficulty Level *</label>
+                <select
+                    name="difficultyLevel"
+                    className="form-select"
+                    value={formData.difficultyLevel}
+                    onChange={handleChange}
+                    required
+                >
+                    <option value="">Select difficulty</option>
+                    <option value="BEGINNER">Beginner</option>
+                    <option value="INTERMEDIATE">Intermediate</option>
+                    <option value="ADVANCED">Advanced</option>
+                </select>
             </div>
 
             {/* ── Media Upload Section ── */}

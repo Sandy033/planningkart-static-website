@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Navbar from '../../components/Navbar/Navbar';
 import { fetchCategories } from '../../store/slices/categorySlice';
-import { fetchOrganizerEvents } from '../../store/slices/eventSlice';
+import { fetchOrganizerEvents, moveToDraft } from '../../store/slices/eventSlice';
 import EventForm from '../../components/EventForm/EventForm';
 import EventList from '../../components/EventList/EventList';
 import './OrganizerDashboard.css';
@@ -38,6 +38,17 @@ const OrganizerDashboard = () => {
     const handleEdit = (event) => {
         setEditingEvent(event);
         setShowForm(true);
+    };
+
+    const handleMoveToDraft = async (eventId) => {
+        try {
+            await dispatch(moveToDraft(eventId)).unwrap();
+            // Refresh the events list to get the updated status
+            dispatch(fetchOrganizerEvents());
+        } catch (err) {
+            console.error('Failed to move event to draft:', err);
+            alert('Failed to move event to draft. Please try again.');
+        }
     };
 
     const handleFormClose = () => {
@@ -85,7 +96,20 @@ const OrganizerDashboard = () => {
                                 <h3>My Events ({filteredEvents.length})</h3>
                             </div>
 
-                            {/* Tabs Navigation */}
+                            {/* Mobile: native dropdown */}
+                            <select
+                                className="events-tabs-mobile"
+                                value={activeTab}
+                                onChange={e => setActiveTab(e.target.value)}
+                            >
+                                {TABS.map(tab => (
+                                    <option key={tab} value={tab}>
+                                        {tab}{tab !== 'ALL' ? ` (${events.filter(e => e.status === tab).length})` : ''}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {/* Desktop: pill tab bar */}
                             <div className="events-tabs">
                                 {TABS.map(tab => (
                                     <button
@@ -106,7 +130,7 @@ const OrganizerDashboard = () => {
                             {loading ? (
                                 <p style={{ color: 'var(--text-secondary)' }}>Loading events…</p>
                             ) : (
-                                <EventList events={filteredEvents} onEdit={handleEdit} />
+                                <EventList events={filteredEvents} onEdit={handleEdit} onMoveToDraft={handleMoveToDraft} />
                             )}
                         </div>
                     )}

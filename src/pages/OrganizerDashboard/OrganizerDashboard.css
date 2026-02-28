@@ -8,8 +8,7 @@
     max-width: 1280px;
     margin: 0 auto;
     padding: var(--space-8) var(--space-6);
-    /* Adjust for fixed navbar if needed, though structure seems to have navbar inside dashboard div or outside */
-    padding-top: 100px;
+    padding-top: 72px;
 }
 
 .dashboard-header {
@@ -81,6 +80,11 @@
 }
 
 /* ── Tabs ─────────────────────────────────────────────────────────── */
+/* Mobile-only tab dropdown — hidden on desktop */
+.events-tabs-mobile {
+    display: none;
+}
+
 .events-tabs {
     display: flex;
     align-items: stretch;
@@ -149,5 +153,24 @@
 
     .dashboard-header .btn {
         width: 100%;
+    }
+
+    /* On mobile: hide the pill tab bar, show a native select instead */
+    .events-tabs {
+        display: none;
+    }
+
+    .events-tabs-mobile {
+        display: block;
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: var(--radius-lg);
+        border: 1.5px solid var(--neutral-300);
+        font-size: 0.9375rem;
+        font-weight: 600;
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        margin-bottom: var(--space-6);
+        cursor: pointer;
     }
 }

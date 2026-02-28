@@ -134,6 +134,18 @@ export const toggleEventStatus = createAsyncThunk(
     }
 );
 
+export const moveToDraft = createAsyncThunk(
+    'events/moveToDraft',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await api.post(`/events/${id}/draft`, {});
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.message || 'Failed to move event to draft');
+        }
+    }
+);
+
 const eventSlice = createSlice({
     name: 'events',
     initialState: {
@@ -200,6 +212,13 @@ const eventSlice = createSlice({
             })
             // Toggle event status
             .addCase(toggleEventStatus.fulfilled, (state, action) => {
+                const index = state.items.findIndex(item => item.id === action.payload.id);
+                if (index !== -1) {
+                    state.items[index] = action.payload;
+                }
+            })
+            // Move event to draft
+            .addCase(moveToDraft.fulfilled, (state, action) => {
                 const index = state.items.findIndex(item => item.id === action.payload.id);
                 if (index !== -1) {
                     state.items[index] = action.payload;

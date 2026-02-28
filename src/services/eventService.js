@@ -184,6 +184,19 @@ export const markEventAsReady = async (eventId) => {
     return handleResponse(response);
 };
 
+// Mark event as draft from ready status
+export const markEventAsDraft = async (eventId) => {
+    const response = await fetch(`${BASE_URL}/events/${eventId}/draft`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders(),
+        },
+        body: JSON.stringify({}),
+    });
+    return handleResponse(response);
+};
+
 // Fetch organizer's own events
 export const fetchOrganizerEvents = async () => {
     const response = await fetch(`${BASE_URL}/events`, {
