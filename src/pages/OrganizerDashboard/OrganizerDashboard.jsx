@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Navbar from '../../components/Navbar/Navbar';
 import { fetchCategories } from '../../store/slices/categorySlice';
-import { fetchOrganizerEvents, moveToDraft } from '../../store/slices/eventSlice';
+import { fetchOrganizerEvents, moveToDraft, unpublishEventThunk } from '../../store/slices/eventSlice';
 import EventForm from '../../components/EventForm/EventForm';
 import EventList from '../../components/EventList/EventList';
 import './OrganizerDashboard.css';
@@ -46,6 +46,18 @@ const OrganizerDashboard = () => {
         } catch (err) {
             console.error('Failed to move event to draft:', err);
             alert('Failed to move event to draft. Please try again.');
+        }
+    };
+
+    const handleUnpublish = async (eventId) => {
+        if (!window.confirm('Are you sure you want to unpublish this event? It will be moved backward to the DRAFT state.')) return;
+        try {
+            await dispatch(unpublishEventThunk(eventId)).unwrap();
+            // Refresh the events list to get the updated status
+            dispatch(fetchOrganizerEvents());
+        } catch (err) {
+            console.error('Failed to unpublish event:', err);
+            alert('Failed to unpublish event. Please try again.');
         }
     };
 
@@ -126,7 +138,7 @@ const OrganizerDashboard = () => {
                             {loading ? (
                                 <p style={{ color: 'var(--text-secondary)' }}>Loading events…</p>
                             ) : (
-                                <EventList events={filteredEvents} onEdit={handleEdit} onMoveToDraft={handleMoveToDraft} />
+                                <EventList events={filteredEvents} onEdit={handleEdit} onMoveToDraft={handleMoveToDraft} onUnpublish={handleUnpublish} />
                             )}
                         </div>
                     )}

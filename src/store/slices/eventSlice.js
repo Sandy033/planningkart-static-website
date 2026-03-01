@@ -146,6 +146,18 @@ export const moveToDraft = createAsyncThunk(
     }
 );
 
+export const unpublishEventThunk = createAsyncThunk(
+    'events/unpublishEvent',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await api.post(`/events/${id}/unpublish`, {});
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.message || 'Failed to unpublish event');
+        }
+    }
+);
+
 const eventSlice = createSlice({
     name: 'events',
     initialState: {
@@ -219,6 +231,13 @@ const eventSlice = createSlice({
             })
             // Move event to draft
             .addCase(moveToDraft.fulfilled, (state, action) => {
+                const index = state.items.findIndex(item => item.id === action.payload.id);
+                if (index !== -1) {
+                    state.items[index] = action.payload;
+                }
+            })
+            // Unpublish event
+            .addCase(unpublishEventThunk.fulfilled, (state, action) => {
                 const index = state.items.findIndex(item => item.id === action.payload.id);
                 if (index !== -1) {
                     state.items[index] = action.payload;
