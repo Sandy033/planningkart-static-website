@@ -235,6 +235,8 @@ const EventForm = ({ event, onSuccess }) => {
         const remaining = MAX_IMAGES - uploadedImages.length - uploadQueue.filter(q => q.status === 'uploading').length;
         const filesToProcess = Array.from(files).slice(0, remaining);
 
+        let currentImageCount = uploadedImages.length;
+
         for (const file of filesToProcess) {
             const fileError = validateFile(file);
             const queueId = `${Date.now()}-${Math.random()}`;
@@ -253,8 +255,8 @@ const EventForm = ({ event, onSuccess }) => {
             ]);
 
             try {
-                const isPrimary = uploadedImages.length === 0;
-                const displayOrder = uploadedImages.length + 1;
+                const isPrimary = currentImageCount === 0;
+                const displayOrder = currentImageCount + 1;
 
                 const uploaded = await uploadEventMedia(
                     eventId,
@@ -272,6 +274,8 @@ const EventForm = ({ event, onSuccess }) => {
                 setUploadQueue((prev) =>
                     prev.map((q) => (q.id === queueId ? { ...q, status: 'done', progress: 100 } : q))
                 );
+
+                currentImageCount++;
 
                 setTimeout(() => {
                     setUploadQueue((prev) => prev.filter((q) => q.id !== queueId));
