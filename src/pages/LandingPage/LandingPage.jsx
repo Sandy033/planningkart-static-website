@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import Navbar from '../../components/Navbar/Navbar.jsx';
 import Hero from '../../components/Hero/Hero.jsx';
 import EventGallery from '../../components/EventGallery/EventGallery.jsx';
@@ -9,9 +10,18 @@ import AboutSection from '../../components/AboutSection/AboutSection.jsx';
 import HowItWorksSection from '../../components/HowItWorksSection/HowItWorksSection.jsx';
 import FeedbackSection from '../../components/FeedbackSection/FeedbackSection.jsx';
 import Footer from '../../components/Footer/Footer.jsx';
+import { fetchEvents } from '../../store/slices/eventSlice';
+import { fetchCategories } from '../../store/slices/categorySlice';
 
 const LandingPage = () => {
     const [activeCategory, setActiveCategory] = useState('all');
+    const dispatch = useDispatch();
+
+    // Kick off data fetches when the home page mounts
+    useEffect(() => {
+        dispatch(fetchEvents());
+        dispatch(fetchCategories());
+    }, [dispatch]);
 
     const handleCategoryChange = (categoryId) => {
         setActiveCategory(categoryId);
@@ -21,9 +31,6 @@ const LandingPage = () => {
         <div className="app">
             <Navbar />
             <Hero />
-
-            {/* Gallery Section */}
-            <EventGallery />
 
             {/* Events Section with Mobile Reordering */}
             <div className="events-container" id="events">
@@ -45,6 +52,9 @@ const LandingPage = () => {
                     <EventSection activeCategory={activeCategory} showHeader={false} />
                 </div>
             </div>
+
+            {/* Gallery Section — below events */}
+            <EventGallery />
 
             {/* About Us Section */}
             <AboutSection />

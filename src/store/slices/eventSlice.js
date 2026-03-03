@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../utils/api';
+import { fetchAllEventsForOrganizer } from '../../services/eventService';
 
 // Async thunks
 export const fetchEvents = createAsyncThunk(
@@ -22,24 +23,18 @@ export const fetchEvents = createAsyncThunk(
     }
 );
 
-// Fetch events for the currently authenticated organizer
+// Fetch events for the currently authenticated organizer via dedicated endpoint
 export const fetchOrganizerEvents = createAsyncThunk(
     'events/fetchOrganizerEvents',
     async (_, { rejectWithValue, getState }) => {
         try {
-            const data = await api.get('/events');
-            let events = Array.isArray(data) ? data : (data.content || data.events || []);
-
-            // Backend returns all events, so filter them by organizer ID
             const user = getState()?.auth?.user;
-            if (user?.role === 'ORGANIZER' && user?.organizer?.id) {
-                // EventResponse DTO uses 'eventOrganizer'; fall back to 'organizer' for compat
-                events = events.filter(e =>
-                    (e.eventOrganizer?.id ?? e.organizer?.id) === user.organizer.id
-                );
+            const organizerId = user?.organizer?.id;
+            if (!organizerId) {
+                return rejectWithValue('Organizer ID not found');
             }
-
-            return events;
+            const data = await fetchAllEventsForOrganizer(organizerId);
+            return Array.isArray(data) ? data : (data.content || data.events || []);
         } catch (error) {
             return rejectWithValue(error.message || 'Failed to fetch organizer events');
         }

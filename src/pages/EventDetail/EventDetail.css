@@ -401,3 +401,79 @@
         min-width: unset;
     }
 }
+
+/* ── Venue & Location section ───────────────────────────────────────── */
+.ed-venue-block {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+.ed-venue-address {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.ed-venue-name {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 2px 0;
+}
+
+.ed-venue-address p {
+    margin: 0;
+}
+
+.ed-map-embed {
+    width: 100%;
+    height: 300px;
+    border: 0;
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-md);
+}
+
+.ed-maps-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    align-self: flex-start;
+    padding: 12px 24px;
+    background: #7c3aed;
+    color: #ffffff !important;
+    border-radius: var(--radius-full);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    text-decoration: none !important;
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow: var(--shadow-md);
+}
+
+.ed-maps-btn svg {
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.ed-maps-btn:hover {
+    opacity: 0.88;
+    transform: translateY(-2px);
+    color: #ffffff !important;
+}
+
+/* Single-line concatenated venue address */
+.ed-venue-address-line {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0 0 var(--space-4) 0;
+}
+
+@media (max-width: 640px) {
+    .ed-map-embed {
+        height: 220px;
+    }
+}

@@ -1,35 +1,43 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { fetchEvents } from '../../store/slices/eventSlice';
 import EventCard from '../EventCard';
-import { getEventsByCategory } from '../../data/events';
 import './EventSection.css';
 
 const EventSection = ({ activeCategory, showHeader = true }) => {
-    const [displayedEvents, setDisplayedEvents] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { items: allEvents, loading } = useSelector((state) => state.events);
     const eventSectionRef = useRef(null);
 
+    // Fetch published events on mount
     useEffect(() => {
-        setIsLoading(true);
+        dispatch(fetchEvents());
+    }, [dispatch]);
 
-        // Scroll to top of event section when category changes
+    // Scroll to top of section when category changes
+    useEffect(() => {
         if (eventSectionRef.current) {
-            // Get the events grid to scroll to it instead of the section
             const eventsGrid = eventSectionRef.current.querySelector('.events-grid');
             if (eventsGrid) {
-                eventsGrid.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
+                eventsGrid.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
-
-        // Simulate loading for smooth transition
-        setTimeout(() => {
-            const events = getEventsByCategory(activeCategory);
-            setDisplayedEvents(events);
-            setIsLoading(false);
-        }, 300);
     }, [activeCategory]);
+
+    // Filter by category tab — 'all' shows everything
+    const displayedEvents = activeCategory === 'all'
+        ? allEvents
+        : allEvents.filter((event) => {
+            // The event DTO uses 'eventCategory' with an 'id' field
+            const catId = event.eventCategory?.id ?? event.category?.id;
+            return String(catId) === String(activeCategory);
+        });
+
+    const handleCardClick = (eventId) => {
+        navigate(`/events/${eventId}`);
+    };
 
     return (
         <section id="events" className="event-section section" ref={eventSectionRef}>
@@ -38,12 +46,12 @@ const EventSection = ({ activeCategory, showHeader = true }) => {
                     <div className="section-header">
                         <h2 className="section-title">Discover Amazing Events</h2>
                         <p className="section-description">
-                            Browse through our curated collection of events and experiences in Bangalore
+                            Browse through our curated collection of events and experiences
                         </p>
                     </div>
                 )}
 
-                {isLoading ? (
+                {loading ? (
                     <div className="loading-spinner">
                         <div className="spinner"></div>
                         <p>Loading events...</p>
@@ -55,7 +63,8 @@ const EventSection = ({ activeCategory, showHeader = true }) => {
                                 <div
                                     key={event.id}
                                     className="event-grid-item fade-in"
-                                    style={{ animationDelay: `${index * 0.05}s` }}
+                                    style={{ animationDelay: `${index * 0.05}s`, cursor: 'pointer' }}
+                                    onClick={() => handleCardClick(event.id)}
                                 >
                                     <EventCard event={event} />
                                 </div>

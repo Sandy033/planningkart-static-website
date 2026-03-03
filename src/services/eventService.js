@@ -197,7 +197,15 @@ export const markEventAsDraft = async (eventId) => {
     return handleResponse(response);
 };
 
-// Fetch organizer's own events
+// Fetch organizer's own events (all statuses) via the dedicated organizer endpoint
+export const fetchAllEventsForOrganizer = async (organizerId) => {
+    const response = await fetch(`${BASE_URL}/events/organizer/${organizerId}`, {
+        headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+};
+
+// Legacy alias — still calls the public events list (for non-organizer pages)
 export const fetchOrganizerEvents = async () => {
     const response = await fetch(`${BASE_URL}/events`, {
         headers: getAuthHeaders(),
