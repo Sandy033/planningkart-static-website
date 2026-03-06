@@ -1,12 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { BASE_URL } from '../../utils/api';
 
 // Async thunk for user signup
 export const signupUser = createAsyncThunk(
     'auth/signup',
     async (signupData, { rejectWithValue }) => {
         try {
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-            const response = await fetch(`${API_BASE_URL}/v1/auth/signup`, {
+            const response = await fetch(`${BASE_URL}/auth/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -54,8 +54,7 @@ export const signupOrganizer = createAsyncThunk(
     'auth/signupOrganizer',
     async (organizerData, { rejectWithValue }) => {
         try {
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-            const response = await fetch(`${API_BASE_URL}/v1/auth/organizer/signup`, {
+            const response = await fetch(`${BASE_URL}/auth/organizer/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -103,8 +102,7 @@ export const loginUser = createAsyncThunk(
     'auth/login',
     async (loginData, { rejectWithValue }) => {
         try {
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-            const response = await fetch(`${API_BASE_URL}/v1/auth/login`, {
+            const response = await fetch(`${BASE_URL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -154,8 +152,7 @@ export const signoutUser = createAsyncThunk(
     'auth/signout',
     async (_, { rejectWithValue }) => {
         try {
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-            const response = await fetch(`${API_BASE_URL}/v1/auth/signout`, {
+            const response = await fetch(`${BASE_URL}/auth/signout`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
