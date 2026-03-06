@@ -1,4 +1,4 @@
-const BASE_URL = '/v1';
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL || ''}/v1`;
 
 const getHeaders = () => {
     const token = localStorage.getItem('authToken');

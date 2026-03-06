@@ -5,7 +5,8 @@ export const signupUser = createAsyncThunk(
     'auth/signup',
     async (signupData, { rejectWithValue }) => {
         try {
-            const response = await fetch('/v1/auth/signup', {
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+            const response = await fetch(`${API_BASE_URL}/v1/auth/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -101,7 +102,8 @@ export const loginUser = createAsyncThunk(
     'auth/login',
     async (loginData, { rejectWithValue }) => {
         try {
-            const response = await fetch('/v1/auth/login', {
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+            const response = await fetch(`${API_BASE_URL}/v1/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -151,7 +153,8 @@ export const signoutUser = createAsyncThunk(
     'auth/signout',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await fetch('/v1/auth/signout', {
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+            const response = await fetch(`${API_BASE_URL}/v1/auth/signout`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
