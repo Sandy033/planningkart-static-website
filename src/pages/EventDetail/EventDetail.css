@@ -297,18 +297,78 @@
 
 .ed-plan-card {
     background: var(--bg-tertiary);
-    border: 1px solid var(--neutral-200);
+    border: 2px solid var(--neutral-200);
     border-radius: var(--radius-2xl);
     padding: var(--space-6);
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
-    transition: box-shadow 0.2s, border-color 0.2s;
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+    cursor: pointer;
+    position: relative;
 }
 
 .ed-plan-card:hover {
     box-shadow: var(--shadow-lg);
-    border-color: var(--primary-200);
+    border-color: #a78bfa;
+    transform: translateY(-2px);
+}
+
+.ed-plan-card--selected {
+    border-color: #7c3aed !important;
+    background: rgba(124, 58, 237, 0.04) !important;
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12) !important;
+}
+
+.ed-plan-selected-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #7c3aed;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+}
+
+/* Hint text above plan grid */
+.ed-plans-hint {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: -0.25rem 0 0.5rem;
+}
+
+/* CTA below plan grid */
+.ed-plans-cta {
+    margin-top: var(--space-5);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.ed-book-btn {
+    padding: 0.85rem 2rem;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+}
+
+.ed-book-btn:disabled {
+    background: var(--neutral-300, #d1d5db);
+    color: var(--text-tertiary, #9ca3af);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.ed-book-btn:not(:disabled):hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
 
 .ed-plan-header {

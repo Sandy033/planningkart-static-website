@@ -4,6 +4,7 @@ import store from './store/store';
 import LandingPage from './pages/LandingPage/LandingPage';
 import OrganizerDashboard from './pages/OrganizerDashboard/OrganizerDashboard';
 import EventDetail from './pages/EventDetail/EventDetail';
+import BookingPage from './pages/BookingPage/BookingPage';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import LoginModal from './components/Auth/LoginModal';
 import SignupModal from './components/Auth/SignupModal';
@@ -25,6 +26,7 @@ function App() {
             }
           />
           <Route path="/events/:id" element={<EventDetail />} />
+          <Route path="/events/:eventId/book/:planId" element={<BookingPage />} />
         </Routes>
         <LoginModal />
         <SignupModal />

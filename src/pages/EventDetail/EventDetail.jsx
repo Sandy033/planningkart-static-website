@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Navbar from '../../components/Navbar/Navbar';
 import { api } from '../../utils/api';
@@ -81,6 +81,8 @@ const EventDetail = () => {
     const [error, setError] = useState(null);
     const { user } = useSelector((state) => state.auth);
     const isPrivileged = ['ADMIN', 'SUPER_ADMIN', 'ORGANIZER'].includes(user?.role);
+    const navigate = useNavigate();
+    const [selectedPlanId, setSelectedPlanId] = useState(null);
 
     const fetchEvent = useCallback(async () => {
         try {
@@ -221,9 +223,20 @@ const EventDetail = () => {
                 {plans.length > 0 && (
                     <section className="ed-section">
                         <h2 className="ed-section-title">Event Plans</h2>
+                        <p className="ed-plans-hint">Select a plan to book your spot.</p>
                         <div className="ed-plans-grid">
                             {plans.map(plan => (
-                                <div key={plan.id} className="ed-plan-card">
+                                <div
+                                    key={plan.id}
+                                    className={`ed-plan-card ${selectedPlanId === plan.id ? 'ed-plan-card--selected' : ''}`}
+                                    onClick={() => setSelectedPlanId(plan.id === selectedPlanId ? null : plan.id)}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => e.key === 'Enter' && setSelectedPlanId(plan.id === selectedPlanId ? null : plan.id)}
+                                >
+                                    {selectedPlanId === plan.id && (
+                                        <span className="ed-plan-selected-badge">✓ Selected</span>
+                                    )}
                                     <div className="ed-plan-header">
                                         <h3 className="ed-plan-title">{plan.title}</h3>
                                         <span className="ed-plan-price">
@@ -252,6 +265,17 @@ const EventDetail = () => {
                                     )}
                                 </div>
                             ))}
+                        </div>
+                        <div className="ed-plans-cta">
+                            <button
+                                className="btn btn-primary ed-book-btn"
+                                disabled={!selectedPlanId}
+                                onClick={() => navigate(`/events/${id}/book/${selectedPlanId}`)}
+                            >
+                                {selectedPlanId
+                                    ? `Book This Plan →`
+                                    : 'Select a Plan to Book'}
+                            </button>
                         </div>
                     </section>
                 )}
